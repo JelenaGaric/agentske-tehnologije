@@ -1,0 +1,28 @@
+@import '~@angular/material/prebuilt-themes/deeppurple-amber.css';
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+body {
+    font-family: Roboto, Arial, sans-serif;
+    margin: 0;
+}
+
+.basic-container {
+    padding: 30px;
+}
+
+.version-info {
+    font-size: 8pt;
+    float: right;
+    margin: 8px;
+}
+
+.example-icon {
+    padding: 0 14px;
+}
+
+.example-spacer {
+    flex: 1 1 auto;
+}
+
+.span {
+    padding: 0 14px;
+}
