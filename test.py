@@ -31,7 +31,6 @@ path = r'F:\Cetvrta godina\VIII Semestar\Agentske'
 
 dataframeMatches = pandas.read_csv(path + r'\matchinfo.csv')
 dataframeKills = pandas.read_csv(path + r'\kills.csv')
-
 dataframeKillsNew = dataframeKills[['Team', 'Address', 'Time']]
 dataframeKillsNew = dataframeKillsNew[dataframeKillsNew.Time <= 15]
 dataframeKillsBlue = dataframeKillsNew[dataframeKillsNew.Team == 'bKills']
