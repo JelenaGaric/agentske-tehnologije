@@ -5,10 +5,14 @@ from sklearn import svm, preprocessing
 from sklearn.metrics import accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelBinarizer
 
-#dataframeLoL = pandas.read_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\LeagueofLegends.csv')
+path = r'D:\agentske tehnologije\datasetLol'
+#path = r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije'
+#dataframeLoL = pandas.read_csv(path+r'\LeagueofLegends.csv')
 
-#dataframeMatches=pandas.read_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\matchinfo.csv')
+#dataframeMatches=pandas.read_csv(path + r'\matchinfo.csv')
 
 #dataframeKills=pandas.read_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\kills.csv')
 
@@ -20,40 +24,43 @@ import matplotlib.pyplot as plt
 
 #df=dataframeKills.set_index('Address').join(dataframeMatches.set_index('Address'), lsuffix='_a', rsuffix='_b')
 #print(df)
-#df.to_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\joined.csv')
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelBinarizer
+#df.to_csv(path + r'\joined.csv')
 
-dataframeGold=pandas.read_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\gold.csv')
-dataframeMatches=pandas.read_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\matchinfo.csv')
-dataframeKills=pandas.read_csv(r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije\kills.csv')
+
+dataframeGold=pandas.read_csv(path + r'\gold.csv')
+dataframeMatches=pandas.read_csv(path + r'\matchinfo.csv')
+dataframeKills=pandas.read_csv(path + r'\kills.csv')
 
 dataframeKillsNew=dataframeKills[['Team','Address','Time']]
 dataframeKillsNew=dataframeKillsNew[dataframeKillsNew.Time<=15]
 dataframeKillsBlue=dataframeKillsNew[dataframeKillsNew.Team=='bKills']
-dataframeKillsRed=dataframeKillsNew.loc[dataframeKillsNew.Team=='rKills']
+dataframeKillsRed=dataframeKillsNew[dataframeKillsNew.Team=='rKills']
 le = preprocessing.LabelEncoder()
 dataframeKillsBlue['Team']= le.fit_transform(dataframeKillsBlue.Team.values)
-print(dataframeKillsBlue)
 dataframeKillsBlue=dataframeKillsBlue.Team.astype(int).groupby(dataframeKillsBlue.Address).count()
 dataframeKillsRed['Team'] = LabelBinarizer().fit_transform(dataframeKillsRed.Team.values)
 dataframeKillsRed=dataframeKillsRed.Team.astype(int).groupby(dataframeKillsRed.Address).count()
-dataframeKillsNew=dataframeKillsRed.set_index('Address').join(dataframeKillsBlue.set_index('Address'))
-print(dataframeKillsNew)
+#dataframeKillsNew=dataframeKillsRed.set_index('Address').join(dataframeKillsBlue.set_index('Address'))
 
-'''dataframeGoldNew=dataframeGold[['min_15','Address','Type']].copy()
-dataframeGoldNew=dataframeGoldNew.rename(columns={"min_15": "golddiff"})'''
+mergedKills = pandas.merge(dataframeKillsRed, dataframeKillsBlue, on='Address')
+mergedKills=mergedKills.rename(columns={"Team_x": "rKills"})
+mergedKills=mergedKills.rename(columns={"Team_y": "bKills"})
+#mergedKills.to_csv(path + r'\joined.csv')
+
+dataframeGoldNew=dataframeGold[['min_15','Address','Type']].copy()
+dataframeGoldNew=dataframeGoldNew.rename(columns={"min_15": "golddiff"})
 
 #dataframeTest=dataframeGold.loc[(dataframeGoldNew.Address=='http://matchhistory.na.leagueoflegends.com/en/#match-details/TRKR1/710104?gameHash=f2055a2aab2e9282')]
 #print(dataframeTest[['Type','min_15']])
 
 #dataframeGoldNew=dataframeGoldNew.loc[(dataframeGoldNew.Type=='goldred')  |  (dataframeGoldNew.Type=='goldblue') ]
-'''
+
 dataframeGoldNew=dataframeGoldNew.loc[(dataframeGoldNew.Type=='golddiff')]
 dataframeGoldNew=dataframeGoldNew.drop(['Type'], axis=1)
 dataframeMatches=dataframeMatches[['Address','rResult','bResult']]
 df=dataframeGoldNew.set_index('Address').join(dataframeMatches.set_index('Address'))
-
+df = pandas.merge(df, mergedKills, on='Address')
+df.to_csv(path + r'\joined.csv')
 
 df.reset_index(drop=True, inplace=True)
 X=df.drop(['rResult','bResult'],axis=1)
@@ -70,4 +77,4 @@ corr=df.corr()
 sns.heatmap(corr)
 plt.show()
 
-#print(dataframeGoldNew)'''
+#print(dataframeGoldNew)
