@@ -1,0 +1,66 @@
+<header class="masthead">
+    <div class="container h-100">
+        <div class="row h-100 align-items-center justify-content-center text-center">
+            <div class="col-lg-8 align-self-baseline">
+                <div class="content">
+                    <h2 style="color:darkgrey;">Will you win?</h2>
+                    <form [formGroup]="predictForm" (ngSubmit)="onSubmit()">
+                        <div class="row gtr-uniform">
+
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="redgold" value="" placeholder="Red Gold">
+                            </div>
+
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="bluegold" value="" placeholder="Blue Gold">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="redkills" value="" placeholder="Red Kills">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="bluekills" value="" placeholder="Blue Kills">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="reddragons" value="" placeholder="Red Dragons">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="bluedragons" value="" placeholder="Blue Dragons">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="redTopLaneStructures" value=""
+                                    placeholder="Red Top Lane Turrets">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="blueTopLaneStructures" value=""
+                                    placeholder="Blue Top Lane Turrets">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="redMidLaneStructures" value=""
+                                    placeholder="Red Mid Lane Turrets">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="blueMidLaneStructures" value=""
+                                    placeholder="Blue Mid Lane Turrets">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="redBotLaneStructures" value=""
+                                    placeholder="Red Bot Lane Turrets">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" formControlName="blueBotLaneStructures" value=""
+                                    placeholder="Blue Bot Lane Turrets">
+                            </div>
+                            <!-- Break -->
+                            <div class="col-12">
+                                <ul class="actions">
+                                    <li><input type="submit" value="Predict" class="primary"></li>
+                                    <li><input type="reset" value="Clear" (click)='clear()'></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
