@@ -64,7 +64,7 @@ public class UserBean {
 		}
 	}
 
-	@POST
+	/*@POST
 	@Path("/login")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -114,7 +114,7 @@ public class UserBean {
 		return null;
 
 	}
-
+	
 	@POST
 	@Path("/register")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -194,5 +194,5 @@ public class UserBean {
 		}
 		return "error";
 
-	}
+	}*/
 }

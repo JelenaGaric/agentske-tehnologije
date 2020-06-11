@@ -11,6 +11,7 @@ import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
+import model.AgentCenter;
 import model.Host;
 
 @Singleton
@@ -19,45 +20,45 @@ import model.Host;
 @AccessTimeout(value = 120000)
 public class NetworkData {
 
-	private List<Host> nodes = new ArrayList<>();
-	private Host master;
-	private Host thisHost;
-
-	public Host getThisHost() {
-		return thisHost;
-	}
-
-	public void setThisHost(Host thisHost) {
-		this.thisHost = thisHost;
-	}
+	private List<AgentCenter> nodes = new ArrayList<>();
+	private AgentCenter master;
+	private AgentCenter thisNode;
 
 	private int counter = 0;
 
-	@Lock(LockType.READ)
-	public Host getMaster() {
-		return master;
+	public AgentCenter getThisNode() {
+		return thisNode;
 	}
 
+	public void setThisNode(AgentCenter thisNode) {
+		this.thisNode = thisNode;
+	}
+
+	@Lock(LockType.READ)
+	public List<AgentCenter> getNodes() {
+		return nodes;
+	}
+	
 	@Lock(LockType.WRITE)
-	public void setMaster(Host master) {
+	public void setNodes(List<AgentCenter> nodes) {
+		this.nodes = nodes;
+	}
+	
+	@Lock(LockType.READ)
+	public AgentCenter getMaster() {
+		return master;
+	}
+	
+	@Lock(LockType.WRITE)
+	public void setMaster(AgentCenter master) {
 		this.master = master;
 	}
 
 	@Lock(LockType.READ)
-	public List<Host> getNodes() {
-		return nodes;
-	}
-
-	@Lock(LockType.WRITE)
-	public void setNodes(List<Host> nodes) {
-		this.nodes = nodes;
-	}
-
-	@Lock(LockType.READ)
 	public int getCounter() {
-		return counter++;
+		return counter;
 	}
-
+	
 	@Lock(LockType.WRITE)
 	public void setCounter(int counter) {
 		this.counter = counter;

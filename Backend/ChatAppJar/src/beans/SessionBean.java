@@ -64,7 +64,7 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 	private Host currentNode;
 
 	private Timer timer;
-
+/*
 	@PostConstruct
 	public void postConstruct() {
 		System.out.println("Created Host Agent!");
@@ -440,5 +440,5 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 		}
 		return f;
 	}
-
+*/
 }

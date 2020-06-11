@@ -1,7 +1,7 @@
 package agent;
 
-import model.Agent;
+import model.AgentType;
 
-public class Predictor extends Agent{
+public class Predictor extends AgentType{
 
 }

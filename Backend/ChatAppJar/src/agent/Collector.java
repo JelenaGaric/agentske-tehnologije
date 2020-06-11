@@ -1,7 +1,7 @@
 package agent;
 
-import model.Agent;
+import model.AgentType;
 
-public class Collector extends Agent{
+public class Collector extends AgentType{
 
 }
