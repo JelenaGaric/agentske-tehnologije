@@ -5,39 +5,48 @@ public class User {
 	private String username;
 	private String password;
 	private Host host;
-	
+
 	public User(String username, String password, Host host) {
 		super();
 		this.username = username;
 		this.password = password;
 		this.host = host;
 	}
+
 	public Host getHost() {
 		return host;
 	}
+
 	public void setHost(Host host2) {
 		this.host = host2;
 	}
+
 	public User() {
 		super();
 	}
+
 	public User(String username, String password) {
 		super();
 		this.username = username;
 		this.password = password;
 	}
+
 	public String getUsername() {
 		return username;
 	}
+
 	public void setUsername(String username) {
 		this.username = username;
 	}
+
 	public String getPassword() {
 		return password;
 	}
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -46,6 +55,7 @@ public class User {
 		result = prime * result + ((username == null) ? 0 : username.hashCode());
 		return result;
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -67,6 +77,5 @@ public class User {
 			return false;
 		return true;
 	}
-	
-	
+
 }

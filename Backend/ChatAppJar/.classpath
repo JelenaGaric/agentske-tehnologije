@@ -7,8 +7,9 @@
 			<attribute name="owner.project.facets" value="jst.ejb"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre-8.0.242.08-hotspot">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
+			<attribute name="module" value="true"/>
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
@@ -19,6 +20,6 @@
 	<classpathentry kind="lib" path="lib/jboss-ejb-api_3.2_spec-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/jboss-cli-client.jar"/>
 	<classpathentry kind="lib" path="lib/jboss-client.jar"/>
-	<classpathentry kind="lib" path="/siebog-jar/lib/jboss-cli-client.jar"/>
+	<classpathentry kind="lib" path="D:/siebog-lite-master/siebog-lite-master/siebog-jar/lib/jboss-cli-client.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

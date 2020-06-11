@@ -1,12 +1,11 @@
 package model;
 
 public class Host {
-	
+
 	private String alias;
 	private String adress;
-	
 
-	 public String getAlias() {
+	public String getAlias() {
 		return alias;
 	}
 
@@ -21,6 +20,5 @@ public class Host {
 	public void setAdress(String adress) {
 		this.adress = adress;
 	}
-
 
 }

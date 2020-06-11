@@ -9,28 +9,26 @@ import javax.jms.MessageListener;
 
 import ws.WS;
 
-
 @MessageDriven(activationConfig = {
 		@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic"),
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/topic/publicTopic") })
-public class UserAgent implements MessageListener{
-	
-	@EJB WS ws; //websocket
+public class UserAgent implements MessageListener {
+
+	@EJB
+	WS ws; // websocket
 
 	@Override
 	public void onMessage(Message mess) {
-		
+
 		String msg;
 		try {
 			msg = mess.getBody(String.class);
-			ws.echoTextMessage(msg); //posalji info socketu	
+			ws.echoTextMessage(msg); // posalji info socketu
 
 		} catch (JMSException e) {
 			e.printStackTrace();
-		}	
-		
+		}
+
 	}
-	
-	
 
 }
