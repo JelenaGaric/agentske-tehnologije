@@ -33,7 +33,17 @@ public class NetworkData {
 	public void setThisNode(AgentCenter thisNode) {
 		this.thisNode = thisNode;
 	}
-
+	
+	@Lock(LockType.READ)
+	public AgentCenter getNode(String alias) {
+		for(AgentCenter agentCenter : this.nodes) {
+			if(alias.equals(agentCenter.getAlias())) {
+				return agentCenter;
+			}
+		}
+		return null;
+	}
+	
 	@Lock(LockType.READ)
 	public List<AgentCenter> getNodes() {
 		return nodes;

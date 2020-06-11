@@ -19,8 +19,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import DTO.PredictDTO;
 import DTO.PredictResultDTO;
@@ -131,7 +136,33 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/node/agents/running")
 	public Response getRunningAgentsNode(ArrayList<Agent> agents) {
+		this.data.setRunningAgents(agents);
 		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+	}
+	
+	@DELETE
+	@Path("/node/{alias}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response deleteNode(@PathParam("alias") String alias) {
+		for (AgentCenter a : networkData.getNodes()) {
+			if (!a.getAlias().equals(alias)) { 
+				/*ResteasyClient client = new ResteasyClientBuilder().build();
+				ResteasyWebTarget target = client.target("http://" + a.getAddress() + ":8080/ChatAppWar/rest/host/node");
+				Response response = target.request().post(Entity.entity(host, "application/json"));
+				String ret = response.readEntity(String.class);
+				System.out.println("Deleted node for everyone.");
+				client.close();*/
+				return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+			}
+		}
+		return Response.noContent().build();
+	}
+	
+	@GET
+	@Path("/node/{alias}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getNode(@PathParam("alias") String alias) {
+		return Response.ok(this.networkData.getNode(alias)).build();
 	}
 	
 	//******************************************AGENT-CENTER - CLIENT*******************************************//
@@ -163,7 +194,7 @@ public class MasterBean extends AgentCenter{
 	@DELETE
 	@Path("/agents/running/{aid}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response stopAgent(@PathParam("aid") String aid) throws JMSException {
+	public Response stopAgent(@PathParam("aid") String aid) {
 		Agent retVal = new Agent();					//return agent which has been stopped
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
