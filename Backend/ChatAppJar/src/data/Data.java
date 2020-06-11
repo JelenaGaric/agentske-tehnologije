@@ -21,6 +21,7 @@ import model.AgentType;
 public class Data {
 
 	private List<Agent> agents = new ArrayList<Agent>();
+	private List<Agent> runningAgents = new ArrayList<Agent>();
 	private List<AgentType> agentTypes = new ArrayList<AgentType>();
 	
 	public Data() {}
@@ -44,7 +45,18 @@ public class Data {
 	public void setAgentTypes(List<AgentType> agentTypes) {
 		this.agentTypes = agentTypes;
 	}
+	
+	@Lock(LockType.READ)
+	public List<Agent> getRunningAgents() {
+		return runningAgents;
+	}
+	
+	@Lock(LockType.WRITE)
+	public void setRunningAgents(List<Agent> runningAgents) {
+		this.runningAgents = runningAgents;
+	}
 
+	
 	//private List<User> loggedIn = new ArrayList<User>();
 	//private List<User> registered = new ArrayList<User>();
 	//private HashMap<String, List<CustomMessage>> userMessages = new HashMap<String, List<CustomMessage>>();
