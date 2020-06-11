@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
-import javax.ejb.Singleton;
 import javax.ejb.Stateful;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -23,7 +22,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -36,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import data.Data;
 import data.NetworkData;
-import model.CustomMessage;
 import model.Host;
 import model.User;
 
@@ -48,16 +45,15 @@ public class UserBean {
 
 	@EJB
 	Data data; // baza korisnika i poruka
-	
+
 	@EJB
 	NetworkData networkData;
-	
+
 	private Connection connection;
 	@Resource(lookup = "java:jboss/exported/jms/RemoteConnectionFactory")
 	private ConnectionFactory connectionFactory;
 	@Resource(lookup = "java:jboss/exported/jms/topic/publicTopic")
 	private Topic defaultTopic;
-	
 
 	@PostConstruct
 	public void postConstruction() {
@@ -65,55 +61,54 @@ public class UserBean {
 			connection = connectionFactory.createConnection("guest", "guest.guest.1");
 		} catch (JMSException ex) {
 			throw new IllegalStateException(ex);
-		} 
+		}
 	}
-	
 
 	@POST
 	@Path("/login")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public String login(User user) {
-		
+
 		if (data.getRegistered().contains(user)) {
 			if (!data.getLoggedIn().contains(user))
 				user.setHost(networkData.getThisHost());
-				data.getLoggedIn().add(user);
-				System.out.println(user.getUsername()+" has logged in");
-				
-				for (Host h:networkData.getNodes()) {
-					ResteasyClient client1 = new ResteasyClientBuilder().build();
-					ResteasyWebTarget target1 = client1
-							.target("http://" + h.getAdress() + ":8080/ChatAppWar/rest/users/loggedIn");
-					Response response1 = target1.request().post(Entity.entity(data.getLoggedIn(), "application/json"));
-					String ret1 = response1.readEntity(String.class);
-					client1.close();
-				}
-				System.out.println("Notified other nodes about the new user");
-				
-				ObjectMapper mapper = new ObjectMapper();
-				String obj;
+			data.getLoggedIn().add(user);
+			System.out.println(user.getUsername() + " has logged in");
+
+			for (Host h : networkData.getNodes()) {
+				ResteasyClient client1 = new ResteasyClientBuilder().build();
+				ResteasyWebTarget target1 = client1
+						.target("http://" + h.getAdress() + ":8080/ChatAppWar/rest/users/loggedIn");
+				Response response1 = target1.request().post(Entity.entity(data.getLoggedIn(), "application/json"));
+				String ret1 = response1.readEntity(String.class);
+				client1.close();
+			}
+			System.out.println("Notified other nodes about the new user");
+
+			ObjectMapper mapper = new ObjectMapper();
+			String obj;
+			try {
+				obj = mapper.writeValueAsString(user);
+
 				try {
-					obj = mapper.writeValueAsString(user);
-					
-					try {
-						Session session=connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-						connection.start();
-						MessageProducer producer = session.createProducer(this.defaultTopic);
-						TextMessage message = session.createTextMessage();
-						message.setText("loggedIn");
-						producer.send((TextMessage) message);
-						producer.close();
-						connection.close();
-					} catch (JMSException e) {
-						e.printStackTrace();
-					}
-					
-					return obj;
-					
-				} catch (JsonProcessingException e) {
+					Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+					connection.start();
+					MessageProducer producer = session.createProducer(this.defaultTopic);
+					TextMessage message = session.createTextMessage();
+					message.setText("loggedIn");
+					producer.send((TextMessage) message);
+					producer.close();
+					connection.close();
+				} catch (JMSException e) {
 					e.printStackTrace();
-				}	
+				}
+
+				return obj;
+
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
 		}
 
 		return null;
@@ -144,18 +139,18 @@ public class UserBean {
 		System.out.println("loggedIn " + data.getLoggedIn());
 		return data.getLoggedIn();
 	}
-	
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/loggedIn")
-	//recieve users from master on register OR from another node on userlogin
-	//and notify websocket clients
+	// recieve users from master on register OR from another node on userlogin
+	// and notify websocket clients
 	public String loggedIn(List<User> users) {
 		System.out.println("recieved users");
 		data.setLoggedIn(users);
-		
+
 		try {
-			Session session=connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			connection.start();
 			MessageProducer producer = session.createProducer(this.defaultTopic);
 			TextMessage message = session.createTextMessage();
@@ -166,7 +161,7 @@ public class UserBean {
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}
-			
+
 		return "OK";
 	}
 
@@ -182,15 +177,15 @@ public class UserBean {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String delete(@PathParam("user") String user) throws JMSException {
 		System.out.println("deleting");
-		
+
 		for (User u : data.getLoggedIn()) {
 			if (u.getUsername().equals(user)) {
 				data.getLoggedIn().remove(u);
-				Session session=connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+				Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 				connection.start();
 				MessageProducer producer = session.createProducer(this.defaultTopic);
 				TextMessage message = session.createTextMessage();
-				message.setText("loggedOut:"+user);
+				message.setText("loggedOut:" + user);
 				producer.send((TextMessage) message);
 				producer.close();
 				connection.close();

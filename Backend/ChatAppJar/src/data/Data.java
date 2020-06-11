@@ -10,7 +10,6 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.LocalBean;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
-import javax.ejb.Remote;
 import javax.ejb.Singleton;
 
 import model.CustomMessage;
@@ -22,17 +21,16 @@ import model.User;
 @AccessTimeout(value = 120000)
 public class Data {
 
-	private List<User> loggedIn= new ArrayList<User>();
-	private List<User> registered=new ArrayList<User>();
-	private HashMap<String, List<CustomMessage>> userMessages=new HashMap<String,List<CustomMessage>>();
-	
+	private List<User> loggedIn = new ArrayList<User>();
+	private List<User> registered = new ArrayList<User>();
+	private HashMap<String, List<CustomMessage>> userMessages = new HashMap<String, List<CustomMessage>>();
+
 	/**
 	 * Default constructor.
 	 */
 	public Data() {
 
 	}
-
 
 	public void setLoggedIn(List<User> loggedIn) {
 		this.loggedIn = loggedIn;
@@ -67,6 +65,5 @@ public class Data {
 	public void addUser(String key, User user) {
 		registered.add(user);
 	}
-
 
 }
