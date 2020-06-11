@@ -1,7 +1,17 @@
 package agent;
 
-import model.AgentType;
+import javax.ejb.Stateful;
 
-public class Predictor extends AgentType{
+import model.ACLMessage;
+import model.Agent;
+
+@Stateful
+public class Predictor extends Agent {
+	
+	private void handleMessage(ACLMessage message) {
+		
+	}
+
+	
 
 }
