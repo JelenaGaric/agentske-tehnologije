@@ -18,11 +18,11 @@ import model.Host;
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 @AccessTimeout(value = 120000)
 public class NetworkData {
-	
-	private List<Host> nodes= new ArrayList<>();
+
+	private List<Host> nodes = new ArrayList<>();
 	private Host master;
-    private Host thisHost;
-    
+	private Host thisHost;
+
 	public Host getThisHost() {
 		return thisHost;
 	}
@@ -30,7 +30,8 @@ public class NetworkData {
 	public void setThisHost(Host thisHost) {
 		this.thisHost = thisHost;
 	}
-	private int counter=0;
+
+	private int counter = 0;
 
 	@Lock(LockType.READ)
 	public Host getMaster() {
@@ -51,10 +52,12 @@ public class NetworkData {
 	public void setNodes(List<Host> nodes) {
 		this.nodes = nodes;
 	}
+
 	@Lock(LockType.READ)
 	public int getCounter() {
 		return counter++;
 	}
+
 	@Lock(LockType.WRITE)
 	public void setCounter(int counter) {
 		this.counter = counter;

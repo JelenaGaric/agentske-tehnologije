@@ -1,17 +1,26 @@
 package beans;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
-import javax.ejb.Remove;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.ejb.Stateful;
-import javax.ejb.Stateless;
-import javax.enterprise.context.Destroyed;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -22,18 +31,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.EmptyStackException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -45,18 +42,15 @@ import data.NetworkData;
 import model.Host;
 import model.User;
 
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URISyntaxException;
-
 @Singleton
 @LocalBean
 @Path("/host")
 @Startup
 public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in terminal ctrl+c to
 							// gracefully exit
-							//or just republish ejb without stopping in eclipse to gracefully exit and trigger
-							//preDestroy
+							// or just republish ejb without stopping in eclipse to gracefully exit and
+							// trigger
+							// preDestroy
 
 	@EJB
 	NetworkData data;
@@ -66,16 +60,15 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 
 	private String masterAddress;
 
-	//need this for preDestroy
+	// need this for preDestroy
 	private Host currentNode;
-	
-	private Timer timer;
 
+	private Timer timer;
 
 	@PostConstruct
 	public void postConstruct() {
 		System.out.println("Created Host Agent!");
-		
+
 		InetAddress inetAddress;
 		try {
 			Host node = new Host();
@@ -85,7 +78,7 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 			this.currentNode = (node);
 			data.setThisHost(node);
 			System.out.println("IP Address:- " + node.getAdress() + " alias: " + node.getAlias());
-			
+
 			try {
 //				Host master=discovery();
 //				if (master!=null) {
@@ -113,18 +106,18 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 						System.out.println("master created");
 						data.setMaster(node);
 					} else {
-						//data.getNodes().add(node);
+						// data.getNodes().add(node);
 						System.out.println("slave created");
 						handshake(node);
-						
-				        timer = new Timer();
-				        timer.schedule(new TimerTask() {
-				            @Override
-				            public void run() { 
-				                heartbeat();
-				            }
-				         }, 0, 1000 * 30 * 1); //every 30 sec
-				
+
+						timer = new Timer();
+						timer.schedule(new TimerTask() {
+							@Override
+							public void run() {
+								heartbeat();
+							}
+						}, 0, 1000 * 30 * 1); // every 30 sec
+
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -143,32 +136,32 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 	public void onDestroy() {
 		sendShutdownSignal(this.currentNode);
 	}
-	
+
 	public Host discovery() {
-		String address=this.currentNode.getAdress();
-		String[] parts=address.split("\\.");
+		String address = this.currentNode.getAdress();
+		String[] parts = address.split("\\.");
 		System.out.println(address);
-		String addressPiece=parts[0]+"."+parts[1]+"."+parts[2];
+		String addressPiece = parts[0] + "." + parts[1] + "." + parts[2];
 		System.out.println("\n Discovery initiated");
-		
-		for(int i=0;i<256;i++) {
-			if(!(addressPiece+"."+i).equals(address)) {
+
+		for (int i = 0; i < 256; i++) {
+			if (!(addressPiece + "." + i).equals(address)) {
 				ResteasyClient client = new ResteasyClientBuilder().build();
-			try {
-				
-					System.out.println("\n Pinging "+ addressPiece+"."+i );
-					
+				try {
+
+					System.out.println("\n Pinging " + addressPiece + "." + i);
+
 					ResteasyWebTarget target = client
-							.target("http://" + addressPiece+"."+i + ":8080/ChatAppWar/rest/host/discover");
+							.target("http://" + addressPiece + "." + i + ":8080/ChatAppWar/rest/host/discover");
 					Response response = target.request().get();
 					Host ret = response.readEntity(Host.class);
-					if(ret!=null) {
-						System.out.println("Discovered:" + ret.getAlias()+" at " +ret.getAdress());
+					if (ret != null) {
+						System.out.println("Discovered:" + ret.getAlias() + " at " + ret.getAdress());
 						return ret;
 					}
 					client.close();
-					
-				}catch(Exception e) {
+
+				} catch (Exception e) {
 					client.close();
 				}
 			}
@@ -176,14 +169,13 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 		return null;
 	}
 
-	
 	@GET
 	@Path("/discover")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Host getDiscovered() {
 		return data.getMaster();
 	}
-	
+
 	public void sendShutdownSignal(Host node) {
 		System.out.println("\n Shutdown initiated");
 		ResteasyClient client = new ResteasyClientBuilder().build();
@@ -208,58 +200,55 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 			}
 		}
 	}
-	
+
 	public void heartbeat() {
-		
-		//randomly pick a node to ping
+
+		// randomly pick a node to ping
 		System.out.println("heart.beat");
-		if(data.getNodes().size()>1){
-			{double x=Math.random() * data.getNodes().size();
-				Host node=data.getNodes().get((int) x);
+		if (data.getNodes().size() > 1) {
+			{
+				double x = Math.random() * data.getNodes().size();
+				Host node = data.getNodes().get((int) x);
 				if (!node.equals(data.getThisHost())) {
-				
+
 					try {
-							String alias=ping(node.getAdress());
-							if (alias!=node.getAlias()) {
+						String alias = ping(node.getAdress());
+						if (alias != node.getAlias()) {
+							throw new Exception();
+						} else
+							System.out.println("\n " + alias + " is alive");
+					} catch (Exception e) {
+						try {
+							String alias = ping(node.getAdress());
+							if (alias != node.getAlias()) {
 								throw new Exception();
-							}
-							else System.out.println("\n "+alias+" is alive");
+							} else
+								System.out.println("\n " + alias + " is alive");
+						} catch (Exception e1) {
+							sendShutdownSignal(node);
+							System.out.println("\n " + node.getAlias() + " is not responding");
 						}
-						catch(Exception e) {
-							try {
-								String alias=ping(node.getAdress());
-								if (alias!=node.getAlias()) {
-									throw new Exception();
-								}
-								else System.out.println("\n "+alias+" is alive");
-							}
-							catch(Exception e1) {
-								sendShutdownSignal(node);
-								System.out.println("\n "+node.getAlias()+" is not responding");
-							}
-						}
+					}
 				}
 			}
-		}else {
+		} else {
 			System.out.println("No nodes to ping");
 		}
 	}
-	
+
 	public String ping(String nodeAdress) {
-		 
-		
-		System.out.println("\n Pinging"+nodeAdress);
+
+		System.out.println("\n Pinging" + nodeAdress);
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client
-				.target("http://" + nodeAdress+ ":8080/ChatAppWar/rest/host/node");
+		ResteasyWebTarget target = client.target("http://" + nodeAdress + ":8080/ChatAppWar/rest/host/node");
 		Response response = target.request().get();
 		String alias = response.readEntity(String.class);
-		
+
 		client.close();
 		return alias;
-	
+
 	}
-	
+
 	@GET
 	@Path("/node")
 	public String recievePing() {
@@ -282,7 +271,7 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 	public void sendInfo(Host host) {
 		// send info about new node to other nodes
 		for (Host n : data.getNodes()) {
-			if (!host.getAlias().equals(n.getAlias())) { //dont send info to new node, he already recieved his
+			if (!host.getAlias().equals(n.getAlias())) { // dont send info to new node, he already recieved his
 				ResteasyClient client = new ResteasyClientBuilder().build();
 				ResteasyWebTarget target = client.target("http://" + n.getAdress() + ":8080/ChatAppWar/rest/host/node");
 				Response response = target.request().post(Entity.entity(host, "application/json"));
@@ -335,13 +324,13 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 
 	public void delete(Host host) {
 		System.out.println("Deleting node from hosts");
-		 data.getNodes().remove(host);
+		data.getNodes().remove(host);
 		for (int i = 0; i < data.getNodes().size(); i++) {
-			if(!(data.getNodes().get(i).getAlias()).equals(host.getAlias())) {
+			if (!(data.getNodes().get(i).getAlias()).equals(host.getAlias())) {
 				System.out.println(i + 1 + "/" + data.getNodes().size());
 				ResteasyClient client = new ResteasyClientBuilder().build();
-				ResteasyWebTarget target = client
-						.target("http://" + data.getNodes().get(i).getAdress() + ":8080/ChatAppWar/rest/host/node/" + host.getAlias());
+				ResteasyWebTarget target = client.target("http://" + data.getNodes().get(i).getAdress()
+						+ ":8080/ChatAppWar/rest/host/node/" + host.getAlias());
 				Response response = target.request().delete();
 				String ret = response.readEntity(String.class);
 				System.out.println("deleted node from " + data.getNodes().get(i).getAlias());
@@ -353,7 +342,7 @@ public class SessionBean { // standalone.bat -c standalone-full-ha.xml to run in
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Path("/register")
 	public String registerNode(Host host) {
-		for (Host h: data.getNodes()) {
+		for (Host h : data.getNodes()) {
 			if (h.getAlias().equals(host.getAlias()))
 				return "Cancel";
 		}
