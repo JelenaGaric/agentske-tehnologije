@@ -1,16 +1,18 @@
 import string
-
+import sklearn
 import pandas
 from sklearn import svm, preprocessing
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelBinarizer
 
 # path = r'D:\agentske tehnologije\datasetLol'
-path = r'F:\Cetvrta godina\VIII Semestar\Agentske'
-# path = r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije'
+#path = r'F:\Cetvrta godina\VIII Semestar\Agentske'
+path = r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije'
 # dataframeLoL = pandas.read_csv(path+r'\LeagueofLegends.csv')
 
 # dataframeMatches=pandas.read_csv(path + r'\matchinfo.csv')
@@ -32,7 +34,7 @@ path = r'F:\Cetvrta godina\VIII Semestar\Agentske'
 dataframeMatches = pandas.read_csv(path + r'\matchinfo.csv')
 dataframeKills = pandas.read_csv(path + r'\kills.csv')
 dataframeKillsNew = dataframeKills[['Team', 'Address', 'Time']]
-dataframeKillsNew = dataframeKillsNew[dataframeKillsNew.Time <= 15]
+dataframeKillsNew = dataframeKillsNew[dataframeKillsNew.Time <= 20]
 dataframeKillsBlue = dataframeKillsNew[dataframeKillsNew.Team == 'bKills']
 dataframeKillsRed = dataframeKillsNew[dataframeKillsNew.Team == 'rKills']
 le = preprocessing.LabelEncoder()
@@ -52,8 +54,8 @@ mergedKills = mergedKills.rename(columns={"Team_y": "bKills"})
 # --------------------------------GOLD-----------------------------------------------
 
 dataframeGold = pandas.read_csv(path + r'\gold.csv')
-dataframeGoldNew = dataframeGold[['min_15', 'Address', 'Type']].copy()
-dataframeGoldNew = dataframeGoldNew.rename(columns={"min_15": "golddiff"})
+dataframeGoldNew = dataframeGold[['min_20', 'Address', 'Type']].copy()
+dataframeGoldNew = dataframeGoldNew.rename(columns={"min_20": "golddiff"})
 dataframeGoldNew = dataframeGoldNew.loc[(dataframeGoldNew.Type == 'golddiff')]
 dataframeGoldNew = dataframeGoldNew.drop(['Type'], axis=1)
 dataframeMatches = dataframeMatches[['Address', 'rResult', 'bResult']]
@@ -65,7 +67,7 @@ df = pandas.merge(df, mergedKills, on='Address')
 # TODO:Add types?
 dataframeStructures = pandas.read_csv(path + r'\structures.csv')
 dataframeStructures = dataframeStructures[['Team', 'Address', 'Time', 'Lane']].copy()
-dataframeStructures = dataframeStructures[dataframeStructures.Time <= 15]
+dataframeStructures = dataframeStructures[dataframeStructures.Time <= 20]
 dataframeStructures = dataframeStructures.drop('Time', axis=1)
 dataframeStructures = pandas.concat([dataframeStructures, pandas.get_dummies(
     dataframeStructures['Lane'], prefix='Lane')], axis=1)
@@ -91,6 +93,7 @@ mergedStruct = mergedStruct.rename(columns={"Team_y": "bTowers"})
 mergedStruct = mergedStruct.rename(columns={"Lane_TOP_LANE_y": "bTOPLANE_kills"})
 mergedStruct = mergedStruct.rename(columns={"Lane_MID_LANE_y": "bMIDLANE_kills"})
 mergedStruct = mergedStruct.rename(columns={"Lane_BOT_LANE_y": "bBOTLANE_kills"})
+mergedStruct = mergedStruct.rename(columns={"Lane_BOT_LANE_y": "bBOTLANE_kills"})
 mergedStruct = mergedStruct.rename(columns={"Lane_TOP_LANE_x": "rTOPLANE_kills"})
 mergedStruct = mergedStruct.rename(columns={"Lane_MID_LANE_x": "rMIDLANE_kills"})
 mergedStruct = mergedStruct.rename(columns={"Lane_BOT_LANE_x": "rBOTLANE_kills"})
@@ -104,7 +107,7 @@ df = pandas.merge(df, mergedStruct, on='Address')
 dataframeMonsters=pandas.read_csv(path + r'\monsters.csv')
 
 dataframeMonsters=dataframeMonsters[['Team','Address','Time']].copy()
-dataframeMonsters=dataframeMonsters[dataframeMonsters.Time<=15]
+dataframeMonsters=dataframeMonsters[dataframeMonsters.Time<=20]
 #print(dataframeMonsters)
 dataframeMonstersBlue = dataframeMonsters[dataframeMonsters.Team.str.startswith('b')]
 dataframeMonstersBlue.drop('Team', axis=1)
@@ -139,7 +142,7 @@ y = df['rResult']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
-clf = svm.SVC()
+clf = RandomForestClassifier()
 clf.fit(X_train, y_train)
 predicted = clf.predict(X_test)
 print(accuracy_score(y_test, predicted))
