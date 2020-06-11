@@ -12,7 +12,6 @@ import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
-import model.CustomMessage;
 import model.User;
 
 @Singleton
@@ -23,7 +22,7 @@ public class Data {
 
 	private List<User> loggedIn = new ArrayList<User>();
 	private List<User> registered = new ArrayList<User>();
-	private HashMap<String, List<CustomMessage>> userMessages = new HashMap<String, List<CustomMessage>>();
+	//private HashMap<String, List<CustomMessage>> userMessages = new HashMap<String, List<CustomMessage>>();
 
 	/**
 	 * Default constructor.
@@ -46,7 +45,7 @@ public class Data {
 		this.registered = registered;
 	}
 
-	@Lock(LockType.READ)
+	/*@Lock(LockType.READ)
 	public HashMap<String, List<CustomMessage>> getUserMessages() {
 		return userMessages;
 	}
@@ -54,7 +53,7 @@ public class Data {
 	@Lock(LockType.WRITE)
 	public void setUserMessages(HashMap<String, List<CustomMessage>> userMessages) {
 		this.userMessages = userMessages;
-	}
+	}*/
 
 	@Lock(LockType.READ)
 	public List<User> getLoggedIn() {

@@ -1,4 +1,5 @@
-/service/
+/META-INF/
+/agent/
 /beans/
 /data/
 /model/
