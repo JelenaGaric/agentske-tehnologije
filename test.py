@@ -11,8 +11,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelBinarizer
 
 # path = r'D:\agentske tehnologije\datasetLol'
-#path = r'F:\Cetvrta godina\VIII Semestar\Agentske'
-path = r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije'
+path = r'C:\Users\Ana\faks\agentske\agentske-tehnologije'
+#path = r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije'
 # dataframeLoL = pandas.read_csv(path+r'\LeagueofLegends.csv')
 
 # dataframeMatches=pandas.read_csv(path + r'\matchinfo.csv')
