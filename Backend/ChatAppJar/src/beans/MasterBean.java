@@ -19,20 +19,15 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-
 import DTO.PredictDTO;
 import DTO.PredictResultDTO;
-import agent.Predictor;
 import data.Data;
 import data.NetworkData;
 import model.ACLMessage;
+import model.AID;
 import model.Agent;
 import model.AgentCenter;
 import model.AgentType;
@@ -73,6 +68,7 @@ public class MasterBean extends AgentCenter{
 	public Response registerNode(AgentCenter agentCenter) {
 		//new node notifying master node
 		//handshake 
+		this.networkData.getNodes().add(agentCenter);
 		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -89,15 +85,18 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/node/publish")
 	public Response publishNode(AgentCenter agentCenter) {
+		//master notifying other nodes that new node has registered
+		
 		for (AgentCenter a : networkData.getNodes()) {
 			if (a.getAlias().equals(agentCenter.getAlias()))
 				return Response.ok("Cancel", MediaType.APPLICATION_JSON).build();
 		}
+		
 		new Thread(new Runnable() {
 			public void run() {
 				networkData.getNodes().add(agentCenter);
 				System.out.println("New node registered.");
-				//TODO:implement postNodes method ***************************************** da li treba????
+				//TODO:implement postNodes method ***************************************** 
 				//postNodes(agentCenter);
 			}
 		}).start();
@@ -160,11 +159,19 @@ public class MasterBean extends AgentCenter{
 		return Response.noContent().build();
 	}
 	
+	/* OVAKO ILI OVO DOLE??????????????????
 	@GET
 	@Path("/node/{alias}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getNode(@PathParam("alias") String alias) {
-		return Response.ok(this.networkData.getNode(alias)).build();
+		return Response.ok(this.networkData.getNode(alias), MediaType.APPLICATION_JSON).build();
+	}*/
+	
+	@GET
+	@Path("/node")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getNode() {
+		return Response.ok(this.networkData.getThisNode(), MediaType.APPLICATION_JSON).build();
 	}
 	
 	//******************************************AGENT-CENTER - CLIENT*******************************************//
@@ -173,26 +180,27 @@ public class MasterBean extends AgentCenter{
 	@Path("/agents/classes")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAgentsClasses() {
-		ArrayList<AgentType> retVal = new ArrayList<>();			//return list of agent types
-		for(Agent agent : data.getAgents()) {
-			retVal.add(agent.getId().getType());
-		}
-	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+		//return list of agent types
+	    return Response.ok(this.data.getAgentTypes(), MediaType.APPLICATION_JSON).build();
 	}
 	
 	@GET
 	@Path("/agents/running")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getRunningAgents() {
-		ArrayList<Agent> retVal = new ArrayList<>();		//return list of agents which have been run
-	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+		//return list of agents which have been run
+	    return Response.ok(this.getRunningAgents(), MediaType.APPLICATION_JSON).build();
 	}
 	
 	@PUT
 	@Path("/agents/running/{type}/{name}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
-	    Agent retVal = new Agent();					//return agent which has been run
+		AID id = new AID();
+		//sta je name? je l alias hosta?????????????????????????
+		id.setType(this.data.getAgentType(type));
+	    Agent retVal = data.getAgent(id);				//return agent which has been run
+	    this.data.getRunningAgents().add(retVal);		//add it to list of running agents
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	
