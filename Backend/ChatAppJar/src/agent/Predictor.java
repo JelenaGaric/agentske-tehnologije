@@ -1,7 +1,23 @@
 package agent;
 
-import model.AgentType;
+import javax.ejb.Stateful;
 
-public class Predictor extends AgentType{
+import model.ACLMessage;
+import model.Agent;
+import model.AgentInterface;
+
+@Stateful
+public class Predictor extends Agent implements AgentInterface {
+
+	@Override
+	public void handleMessage(ACLMessage message) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	
+
+	
 
 }

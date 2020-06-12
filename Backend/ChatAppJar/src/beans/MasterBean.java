@@ -29,12 +29,14 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import DTO.PredictDTO;
 import DTO.PredictResultDTO;
+import agent.Predictor;
 import data.Data;
 import data.NetworkData;
 import model.ACLMessage;
 import model.Agent;
 import model.AgentCenter;
 import model.AgentType;
+import model.Performative;
 
 @Path("/master")
 @LocalBean
@@ -172,6 +174,9 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAgentsClasses() {
 		ArrayList<AgentType> retVal = new ArrayList<>();			//return list of agent types
+		for(Agent agent : data.getAgents()) {
+			retVal.add(agent.getId().getType());
+		}
 	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -211,7 +216,15 @@ public class MasterBean extends AgentCenter{
 	@Path("/messages")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getPerformatives() {
-		ArrayList<String> retVal = new ArrayList<>();		//return list of peformatives from enum
+		//return list of peformatives from enum
+		ArrayList<Performative> retVal = new ArrayList<Performative>();
+
+		Performative[] performative = Performative.values();
+
+		for(Performative p : performative)
+
+			retVal.add(p);
+
 	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	

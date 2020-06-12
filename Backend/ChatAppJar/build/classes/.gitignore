@@ -1,6 +1,6 @@
-/META-INF/
-/agent/
-/beans/
 /data/
+/beans/
+/modelinterface/
 /model/
+/agent/
 /DTO/
