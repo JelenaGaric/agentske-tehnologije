@@ -35,6 +35,7 @@ import model.ACLMessage;
 import model.Agent;
 import model.AgentCenter;
 import model.AgentType;
+import model.Performative;
 
 @Path("/master")
 @LocalBean
@@ -211,7 +212,15 @@ public class MasterBean extends AgentCenter{
 	@Path("/messages")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getPerformatives() {
-		ArrayList<String> retVal = new ArrayList<>();		//return list of peformatives from enum
+		//return list of peformatives from enum
+		ArrayList<Performative> retVal = new ArrayList<Performative>();
+
+		Performative[] performative = Performative.values();
+
+		for(Performative p : performative)
+
+			retVal.add(p);
+
 	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	
