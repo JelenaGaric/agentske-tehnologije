@@ -29,6 +29,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import DTO.PredictDTO;
 import DTO.PredictResultDTO;
+import agent.Predictor;
 import data.Data;
 import data.NetworkData;
 import model.ACLMessage;
@@ -173,6 +174,9 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAgentsClasses() {
 		ArrayList<AgentType> retVal = new ArrayList<>();			//return list of agent types
+		for(Agent agent : data.getAgents()) {
+			retVal.add(agent.getId().getType());
+		}
 	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	

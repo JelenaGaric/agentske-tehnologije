@@ -6,9 +6,7 @@ import javax.ejb.Stateful;
 public class Agent {
 
 	private AID id;
-
-	private void handleMessage(ACLMessage message) {
-	}
+	
 
 	public AID getId() {
 		return id;
@@ -26,5 +24,7 @@ public class Agent {
 		super();
 		this.id = id;
 	}
+
+
 
 }
