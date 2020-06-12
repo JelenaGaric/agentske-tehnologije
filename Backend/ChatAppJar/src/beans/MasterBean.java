@@ -122,7 +122,7 @@ public class MasterBean extends AgentCenter{
 						networkData.setMaster(node);
 					} else {
 						System.out.println("slave created");
-						handshake(node);
+						//handshake(node);
 
 						/*timer = new Timer();
 						timer.schedule(new TimerTask() {
@@ -159,7 +159,7 @@ public class MasterBean extends AgentCenter{
 				System.out.println(i + 1 + "/" + networkData.getNodes().size());
 				ResteasyClient client = new ResteasyClientBuilder().build();
 				ResteasyWebTarget target = client.target("http://" + networkData.getNodes().get(i).getAddress()
-						+ ":8080/ChatAppWar/rest/node/" + alias);
+						+ ":8080/ChatAppWar/rest/master/node/" + alias);
 				Response response = target.request().delete();
 				String ret = response.readEntity(String.class);
 				System.out.println("deleted node from " + networkData.getNodes().get(i).getAlias());
@@ -185,39 +185,23 @@ public class MasterBean extends AgentCenter{
 		System.out.println("Registering node:");
 		ResteasyClient client = new ResteasyClientBuilder().build();
 		ResteasyWebTarget target = client
-				.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/node");
+				.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/master/node");
 		Response response = target.request().post(Entity.entity(node, "application/json"));
 		client.close();
-		if (response.equals("Ok"))
+		if (response.getStatus() == 200)
 			System.out.println("Node registered");
-		else
+		else if(response.getStatus() == 400)
 			System.out.println("Node with same alias already exists");
 	}
 
 	public void sendNodesToNewNode(AgentCenter node) {
-
+		
 		try {
 			// throw new EmptyStackException();
-			ResteasyClient client1 = new ResteasyClientBuilder().build();
-			ResteasyWebTarget target1 = client1
-					.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/nodes");
-			Response response1 = target1.request().post(Entity.entity(networkData.getNodes(), "application/json"));
-			String ret1 = response1.readEntity(String.class);
-			System.out.println("Sent node info to new node.");
-			client1.close();
-			sendNewNodeToNodes(node);
+			sendNodesRest(node);
 		} catch (Exception e) {
 			try {
-				// throw new EmptyStackException();
-				ResteasyClient client1 = new ResteasyClientBuilder().build();
-				ResteasyWebTarget target1 = client1
-						.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/nodes");
-
-				Response response1 = target1.request().post(Entity.entity(networkData.getNodes(), "application/json"));
-				String ret1 = response1.readEntity(String.class);
-				System.out.println("Sent node info to new node");
-				client1.close();
-				sendNewNodeToNodes(node);
+				sendNodesRest(node);
 			} catch (Exception e1) {
 				System.out.println("Handshake unsuccessful: Roll-back...");
 				delete(node.getAlias());
@@ -225,13 +209,24 @@ public class MasterBean extends AgentCenter{
 		}
 	}
 
+	public void sendNodesRest(AgentCenter node) {
+		ResteasyClient client1 = new ResteasyClientBuilder().build();
+		ResteasyWebTarget target1 = client1
+				.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/master/nodes");
+		Response response1 = target1.request().post(Entity.entity(networkData.getNodes(), "application/json"));
+		String ret1 = response1.readEntity(String.class);
+		System.out.println("Sent nodes to new node.");
+		client1.close();
+		sendNewNodeToNodes(node);
+	}
+	
 	public void sendNewNodeToNodes(AgentCenter node) {
 		// send info about new node to other nodes
 		for (AgentCenter agentCenter : networkData.getNodes()) {
 			if (!agentCenter.getAlias().equals(node.getAlias())) {
 				ResteasyClient client = new ResteasyClientBuilder().build();
 				ResteasyWebTarget target = client.target("http://" + agentCenter.getAddress() + 
-						":8080/ChatAppWar/rest/node");
+						":8080/ChatAppWar/rest/master/node");
 				Response response = target.request().post(Entity.entity(node, "application/json"));
 				String ret = response.readEntity(String.class);
 				System.out.println("Sent new node to other nodes.");
@@ -256,29 +251,27 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/node")
 	public Response registerNode(AgentCenter agentCenter) {
-		
 		if(networkData.getThisNode().getAddress().equals(masterAddress)) {
 			//master registering new node 
 			for (AgentCenter a : networkData.getNodes()) {
 				if (a.getAlias().equals(agentCenter.getAlias()))
 					//already exists
-					return Response.ok("Cancel", MediaType.APPLICATION_JSON).build();
+					return Response.status(400).build();
 			}
 			
 			new Thread(new Runnable() {
 				public void run() {
 					networkData.getNodes().add(agentCenter);
 					System.out.println("New node registered.");
-					//TODO:implement postNodes method ***************************************** 
 					sendNodesToNewNode(agentCenter);
 				}
 			}).start();
-			
-			return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+		
+			return Response.status(200).build();
 		}
 		//other nodes registering new node from master
 		networkData.getNodes().add(agentCenter);
-		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();			
+		return Response.status(200).build();
 		
 	}
 	
@@ -304,7 +297,14 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/nodes")
 	public Response nodes(ArrayList<AgentCenter> nodes) {
+		System.out.println("USLOOOO");
+		for(AgentCenter agentCenter : nodes) {
+			System.out.println("got: " + agentCenter.getAddress());
+		}
 		this.networkData.setNodes(nodes);		//master setting node list to other nodes
+		for(AgentCenter agentCenter : this.networkData.getNodes()) {
+			System.out.println("now set: " + agentCenter.getAddress());
+		}
 		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
 	}
 	
