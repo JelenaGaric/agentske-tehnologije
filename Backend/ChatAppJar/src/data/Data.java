@@ -12,6 +12,7 @@ import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
 import agent.Predictor;
+import model.AID;
 import model.ACLMessage;
 import model.Agent;
 import model.AgentType;
@@ -81,6 +82,35 @@ public class Data {
 		}
 		return null;
 		
+	}
+		
+	@Lock(LockType.READ)
+	public Agent getAgent(AID id) {
+		for(Agent agent : this.agents) {
+			if(agent.getId().equals(id)) {
+				return agent;
+			}
+		}
+		return null;
+	}
+	
+	@Lock(LockType.READ)
+	public AgentType getAgentType(String type) {
+		for(AgentType agentType : this.agentTypes) {
+			if(agentType.getName().equals(type)) {
+				return agentType;
+			}
+		}
+		return null;
+	}
+	
+	@Lock(LockType.WRITE)
+	public boolean deleteAgent(Agent agent) {
+		if(this.agents.contains(agent)) {
+			this.agents.remove(agent);
+			return true;
+		}
+		return false;
 	}
 	
 	//private List<User> loggedIn = new ArrayList<User>();
