@@ -11,7 +11,9 @@ import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
+import agent.Predictor;
 import model.AID;
+import model.ACLMessage;
 import model.Agent;
 import model.AgentType;
 
@@ -24,6 +26,7 @@ public class Data {
 	private List<Agent> agents = new ArrayList<Agent>();
 	private List<Agent> runningAgents = new ArrayList<Agent>();
 	private List<AgentType> agentTypes = new ArrayList<AgentType>();
+	private List<ACLMessage> aclMessages = new ArrayList<ACLMessage>();
 	
 	public Data() {}
 
@@ -56,7 +59,31 @@ public class Data {
 	public void setRunningAgents(List<Agent> runningAgents) {
 		this.runningAgents = runningAgents;
 	}
+	
 
+	@Lock(LockType.READ)
+	public List<ACLMessage> getAclMessages() {
+		return aclMessages;
+	}
+
+	@Lock(LockType.WRITE)
+	public void setAclMessages(List<ACLMessage> aclMessages) {
+		this.aclMessages = aclMessages;
+	}
+
+	public Agent agentName(String name) {
+		
+		for (Agent agent : agents) {
+
+			if (agent.getId().getName().equals(name)) 
+
+				return agent; 
+			
+		}
+		return null;
+		
+	}
+		
 	@Lock(LockType.READ)
 	public Agent getAgent(AID id) {
 		for(Agent agent : this.agents) {

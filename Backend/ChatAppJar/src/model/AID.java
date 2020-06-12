@@ -2,6 +2,7 @@ package model;
 
 public class AID {
 
+	private String name;
 	private AgentCenter host;
 	private AgentType type;
 
@@ -30,5 +31,15 @@ public class AID {
 	public void setType(AgentType type) {
 		this.type = type;
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	
 
 }
