@@ -1,0 +1,26 @@
+<div>
+    <div>
+        <mat-selection-list #shoes [multiple]="false" [(ngModel)]="selectedAgent" name="list1">
+            <mat-list-option *ngFor="let agent of runningAgents">
+                {{agent}}
+            </mat-list-option>
+        </mat-selection-list>
+
+        <p>
+            Option selected: {{selectedAgent}}
+        </p>
+    </div>
+    <div>
+        <mat-selection-list #shoes [multiple]="false" [(ngModel)]="selectedType"  name="list2">
+            <mat-list-option *ngFor="let type of agentTypes">
+                {{type}}
+            </mat-list-option>
+        </mat-selection-list>
+
+        <p>
+            Option selected: {{selectedType}}
+        </p>
+    </div>
+
+
+</div>
