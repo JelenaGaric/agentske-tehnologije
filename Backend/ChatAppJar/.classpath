@@ -20,6 +20,5 @@
 	<classpathentry kind="lib" path="lib/jboss-ejb-api_3.2_spec-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/jboss-cli-client.jar"/>
 	<classpathentry kind="lib" path="lib/jboss-client.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Ana/Downloads/siebog-lite-master/siebog-lite-master/siebog-jar/lib/jboss-cli-client.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
