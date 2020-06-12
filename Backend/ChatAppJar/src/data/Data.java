@@ -12,6 +12,7 @@ import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
 import model.AID;
+import model.ACLMessage;
 import model.Agent;
 import model.AgentType;
 
