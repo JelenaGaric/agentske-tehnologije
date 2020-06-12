@@ -10,9 +10,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelBinarizer
 
-# path = r'D:\agentske tehnologije\datasetLol'
-path = r'C:\Users\Ana\faks\agentske\agentske-tehnologije'
+min = 20
+path = r'D:\agentske tehnologije\datasetLol'
+#path = r'C:\Users\Ana\faks\agentske\agentske-tehnologije'
 #path = r'C:\Users\HP\Documents\Tamara faks\Agentske tehnologije\agentske-tehnologije'
+
 # dataframeLoL = pandas.read_csv(path+r'\LeagueofLegends.csv')
 
 # dataframeMatches=pandas.read_csv(path + r'\matchinfo.csv')
@@ -34,7 +36,7 @@ path = r'C:\Users\Ana\faks\agentske\agentske-tehnologije'
 dataframeMatches = pandas.read_csv(path + r'\matchinfo.csv')
 dataframeKills = pandas.read_csv(path + r'\kills.csv')
 dataframeKillsNew = dataframeKills[['Team', 'Address', 'Time']]
-dataframeKillsNew = dataframeKillsNew[dataframeKillsNew.Time <= 20]
+dataframeKillsNew = dataframeKillsNew[dataframeKillsNew.Time <= min]
 dataframeKillsBlue = dataframeKillsNew[dataframeKillsNew.Team == 'bKills']
 dataframeKillsRed = dataframeKillsNew[dataframeKillsNew.Team == 'rKills']
 le = preprocessing.LabelEncoder()
@@ -67,7 +69,7 @@ df = pandas.merge(df, mergedKills, on='Address')
 # TODO:Add types?
 dataframeStructures = pandas.read_csv(path + r'\structures.csv')
 dataframeStructures = dataframeStructures[['Team', 'Address', 'Time', 'Lane']].copy()
-dataframeStructures = dataframeStructures[dataframeStructures.Time <= 20]
+dataframeStructures = dataframeStructures[dataframeStructures.Time <= min]
 dataframeStructures = dataframeStructures.drop('Time', axis=1)
 dataframeStructures = pandas.concat([dataframeStructures, pandas.get_dummies(
     dataframeStructures['Lane'], prefix='Lane')], axis=1)
@@ -107,7 +109,7 @@ df = pandas.merge(df, mergedStruct, on='Address')
 dataframeMonsters=pandas.read_csv(path + r'\monsters.csv')
 
 dataframeMonsters=dataframeMonsters[['Team','Address','Time']].copy()
-dataframeMonsters=dataframeMonsters[dataframeMonsters.Time<=20]
+dataframeMonsters=dataframeMonsters[dataframeMonsters.Time <= min]
 #print(dataframeMonsters)
 dataframeMonstersBlue = dataframeMonsters[dataframeMonsters.Team.str.startswith('b')]
 dataframeMonstersBlue.drop('Team', axis=1)

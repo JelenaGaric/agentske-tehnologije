@@ -77,6 +77,15 @@ public class Data {
 		return null;
 	}
 	
+	@Lock(LockType.WRITE)
+	public boolean deleteAgent(Agent agent) {
+		if(this.agents.contains(agent)) {
+			this.agents.remove(agent);
+			return true;
+		}
+		return false;
+	}
+	
 	//private List<User> loggedIn = new ArrayList<User>();
 	//private List<User> registered = new ArrayList<User>();
 	//private HashMap<String, List<CustomMessage>> userMessages = new HashMap<String, List<CustomMessage>>();

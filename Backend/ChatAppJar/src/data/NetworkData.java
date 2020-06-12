@@ -53,6 +53,21 @@ public class NetworkData {
 	public void setNodes(List<AgentCenter> nodes) {
 		this.nodes = nodes;
 	}
+
+	@Lock(LockType.WRITE)
+	public boolean deleteNode(String alias) {
+		AgentCenter toDelete = null;
+		for(AgentCenter agentCenter : this.nodes) {
+			if(agentCenter.getAlias().equals(alias)) {
+				toDelete = agentCenter;
+			}
+		}
+		if(toDelete != null) {
+			this.nodes.remove(toDelete);
+			return true;
+		}
+		return false;
+	}
 	
 	@Lock(LockType.READ)
 	public AgentCenter getMaster() {
