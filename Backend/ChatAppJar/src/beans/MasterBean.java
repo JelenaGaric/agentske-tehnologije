@@ -1,6 +1,7 @@
 package beans;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -33,6 +34,7 @@ import agent.Predictor;
 import data.Data;
 import data.NetworkData;
 import model.ACLMessage;
+import model.AID;
 import model.Agent;
 import model.AgentCenter;
 import model.AgentType;
@@ -185,6 +187,11 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getRunningAgents() {
 		ArrayList<Agent> retVal = new ArrayList<>();		//return list of agents which have been run
+		
+		for(Agent agent : data.getRunningAgents()) {
+			retVal.add(agent);		
+		}
+			
 	    return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -193,6 +200,15 @@ public class MasterBean extends AgentCenter{
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
 	    Agent retVal = new Agent();					//return agent which has been run
+	    AID id = new AID();
+	   /* AID id = new AID();
+	    
+	    retVal.getId().setType(this.data.getAgentTypes(id));
+
+	    id.setType(this.data.getAgentType(type));
+	    Agent retVal = data.getAgent(id);				//return agent which has been run
+	    this.data.getRunningAgents().add(retVal);		//add it to list of running agents	   
+		*/
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	
@@ -200,15 +216,59 @@ public class MasterBean extends AgentCenter{
 	@Path("/agents/running/{aid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response stopAgent(@PathParam("aid") String aid) {
-		Agent retVal = new Agent();					//return agent which has been stopped
+		Agent retVal = new Agent();				//return agent which has been stopped
+		
+		String agentId = retVal.getId().toString();
+		if(agentId == aid) {
+			
+			this.data.getRunningAgents().remove(retVal);
+			
+		}
+
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
+	
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/messages")
 	public Response sendACLMessage(ACLMessage aclMessage) {
+		
+		ACLMessage aclMess = new ACLMessage();
+		
+		aclMess.setSender(aclMessage.getSender());
+		
+		aclMess.setRecievers(aclMessage.getRecievers());
+		
+		aclMess.setPerformative(aclMessage.getPerformative());
+
+		aclMess.setContent(aclMessage.getContent());
+
+		aclMess.setContentObj(aclMessage.getContentObj());
+
+		aclMess.setConversationId(aclMessage.getConversationId());
+
+		aclMess.setEncoding(aclMessage.getEncoding());
+
+		aclMess.setInReplyTo(aclMessage.getInReplyTo());
+
+		aclMess.setLanguage(aclMessage.getLanguage());
+
+		aclMess.setOntology(aclMessage.getOntology());
+
+		aclMess.setProtocol(aclMessage.getProtocol());
+
+		aclMess.setReplyBy(aclMessage.getReplyBy());
+
+		aclMess.setReplyTo(aclMessage.getReplyTo());
+
+		aclMess.setReplyWith(aclMessage.getReplyWith());
+
+		aclMess.setUserArgs(aclMessage.getUserArgs());
+
+		this.data.getAclMessages().add(aclMess);
+		
 		return Response.ok("Ok.", MediaType.APPLICATION_JSON).build();
 	}
 
@@ -216,7 +276,7 @@ public class MasterBean extends AgentCenter{
 	@Path("/messages")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getPerformatives() {
-		//return list of peformatives from enum
+		//return list of performatives from enum
 		ArrayList<Performative> retVal = new ArrayList<Performative>();
 
 		Performative[] performative = Performative.values();
