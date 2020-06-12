@@ -18,7 +18,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
-import javax.ejb.Stateful;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -53,7 +54,8 @@ import model.Performative;
 
 @Path("/master")
 @LocalBean
-@Stateful
+@Singleton
+@Startup
 public class MasterBean extends AgentCenter{
 	
 	@EJB
