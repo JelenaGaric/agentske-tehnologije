@@ -11,9 +11,8 @@ import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
-import agent.Predictor;
-import model.AID;
 import model.ACLMessage;
+import model.AID;
 import model.Agent;
 import model.AgentType;
 
@@ -21,7 +20,7 @@ import model.AgentType;
 @LocalBean
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 @AccessTimeout(value = 120000)
-public class Data {
+public class Data implements DataLocal{
 
 	private List<Agent> agents = new ArrayList<Agent>();
 	private List<Agent> runningAgents = new ArrayList<Agent>();
@@ -29,48 +28,49 @@ public class Data {
 	private List<ACLMessage> aclMessages = new ArrayList<ACLMessage>();
 	
 	public Data() {}
-
+	
+	@Override
 	@Lock(LockType.READ)
 	public List<Agent> getAgents() {
 		return agents;
 	}
-	
+	@Override
 	@Lock(LockType.WRITE)
 	public void setAgents(List<Agent> agents) {
 		this.agents = agents;
 	}
-
+	@Override
 	@Lock(LockType.READ)
 	public List<AgentType> getAgentTypes() {
 		return agentTypes;
 	}
-	
+	@Override
 	@Lock(LockType.WRITE)
 	public void setAgentTypes(List<AgentType> agentTypes) {
 		this.agentTypes = agentTypes;
 	}
-	
+	@Override
 	@Lock(LockType.READ)
 	public List<Agent> getRunningAgents() {
 		return runningAgents;
 	}
-	
+	@Override
 	@Lock(LockType.WRITE)
 	public void setRunningAgents(List<Agent> runningAgents) {
 		this.runningAgents = runningAgents;
 	}
 	
-
+	@Override
 	@Lock(LockType.READ)
 	public List<ACLMessage> getAclMessages() {
 		return aclMessages;
 	}
-
+	@Override
 	@Lock(LockType.WRITE)
 	public void setAclMessages(List<ACLMessage> aclMessages) {
 		this.aclMessages = aclMessages;
 	}
-
+	@Override
 	public Agent agentName(String name) {
 		
 		for (Agent agent : agents) {
@@ -83,7 +83,7 @@ public class Data {
 		return null;
 		
 	}
-		
+	@Override
 	@Lock(LockType.READ)
 	public Agent getAgent(AID id) {
 		for(Agent agent : this.agents) {
@@ -93,7 +93,7 @@ public class Data {
 		}
 		return null;
 	}
-	
+	@Override
 	@Lock(LockType.READ)
 	public AgentType getAgentType(String type) {
 		for(AgentType agentType : this.agentTypes) {
@@ -103,55 +103,56 @@ public class Data {
 		}
 		return null;
 	}
-	
+	@Override	
 	@Lock(LockType.WRITE)
-	public boolean deleteAgent(Agent agent) {
+	public void deleteAgent(Agent agent) {
 		if(this.agents.contains(agent)) {
 			this.agents.remove(agent);
-			return true;
 		}
-		return false;
+		//if there are no agents with that type anymore
+		if(getAgentsByType(agent.getId().getType()).isEmpty())
+			this.agentTypes.remove(agent.getId().getType());
 	}
-	
-	//private List<User> loggedIn = new ArrayList<User>();
-	//private List<User> registered = new ArrayList<User>();
-	//private HashMap<String, List<CustomMessage>> userMessages = new HashMap<String, List<CustomMessage>>();
-	
-	
-	/*
-	public void setLoggedIn(List<User> loggedIn) {
-		this.loggedIn = loggedIn;
-	}
-
+	@Override
 	@Lock(LockType.READ)
-	public List<User> getRegistered() {
-		return registered;
+	public ArrayList<AID> getRunningAIDs() {
+		ArrayList<AID> aids = new ArrayList<>();
+		for(Agent agent : this.agents) {
+			aids.add(agent.getId());
+		}
+		return aids;
 	}
-
-	@Lock(LockType.WRITE)
-	public void setRegistered(List<User> registered) {
-		this.registered = registered;
-	}
-	
+	@Override
 	@Lock(LockType.READ)
-	public HashMap<String, List<CustomMessage>> getUserMessages() {
-		return userMessages;
+	public ArrayList<Agent> getAgentsByType(AgentType agentType){
+		ArrayList<Agent> retVal = new ArrayList<>();
+		for(Agent agent : agents) {
+			if(agent.getId().getType().equals(agentType)) {
+				retVal.add(agent);
+			}
+		}
+			
+		return retVal;
 	}
-
-	@Lock(LockType.WRITE)
-	public void setUserMessages(HashMap<String, List<CustomMessage>> userMessages) {
-		this.userMessages = userMessages;
+	@Override
+	public ArrayList<Agent> getRunningAgentsByType(AgentType agentType){
+		ArrayList<Agent> retVal = new ArrayList<>();
+		for(Agent agent : runningAgents) {
+			if(agent.getId().getType().equals(agentType)) {
+				retVal.add(agent);
+			}
+		}
+			
+		return retVal;
 	}
-
-	@Lock(LockType.READ)
-	public List<User> getLoggedIn() {
-		return this.loggedIn;
+	@Override
+	public void stopRunningAgent(AID aid) {
+		if(this.getRunningAIDs().contains(aid))
+			this.runningAgents.remove(getAgent(aid));
 	}
-
-	@Lock(LockType.WRITE)
-	public void addUser(String key, User user) {
-		registered.add(user);
+	@Override
+	public void stopRunningAgents() {
+		this.runningAgents.clear();
 	}
-	*/
 	
 }

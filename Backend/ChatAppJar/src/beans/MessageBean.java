@@ -34,13 +34,13 @@ import model.User;
 //prima rest i prepakuje poruku u jms poruku 1 korak
 public class MessageBean {
 
+	/*
 	@EJB
 	Data data; // database for registered users and messages
 
 	@EJB
 	NetworkData networkData;
 
-	/*
 	 * @POST
 	 * 
 	 * @Path("/all")

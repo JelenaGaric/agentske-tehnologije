@@ -1,30 +1,15 @@
 package model;
 
+import java.io.Serializable;
+
 import javax.ejb.Stateful;
 
-@Stateful
-public class Agent {
-
-	private AID id;
+public interface Agent extends Serializable{
 	
+	public AID getId();
 
-	public AID getId() {
-		return id;
-	}
-
-	public void setId(AID id) {
-		this.id = id;
-	}
-
-	public Agent() {
-		super();
-	}
-
-	public Agent(AID id) {
-		super();
-		this.id = id;
-	}
-
-
+	public void setId(AID id);
+	
+	public void handleMessage(ACLMessage message);
 
 }

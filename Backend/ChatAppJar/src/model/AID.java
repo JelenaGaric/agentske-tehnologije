@@ -1,7 +1,11 @@
 package model;
 
-public class AID {
+import java.io.Serializable;
 
+public class AID  implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
+	
 	private String name;
 	private AgentCenter host;
 	private AgentType type;
@@ -15,12 +19,6 @@ public class AID {
 
 	public AID() {
 		super();
-	}
-
-	public AID(AgentCenter host, AgentType type) {
-		super();
-		this.host = host;
-		this.type = type;
 	}
 
 	public AgentCenter getHost() {
