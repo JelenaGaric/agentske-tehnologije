@@ -19,15 +19,15 @@ public class UserAgent implements MessageListener {
 
 	@Override
 	public void onMessage(Message mess) {
-
-		String msg;
-		try {
-			msg = mess.getBody(String.class);
-			ws.echoTextMessage(msg); // posalji info socketu
-
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
+//
+//		String msg;
+//		try {
+//			msg = mess.getBody(String.class);
+//			ws.echoTextMessage(msg); // posalji info socketu
+//
+//		} catch (JMSException e) {
+//			e.printStackTrace();
+//		}
 
 	}
 

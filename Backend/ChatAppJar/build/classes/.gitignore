@@ -1,18 +1,19 @@
-<<<<<<< HEAD
-/DTO/
-/META-INF/
 /agent/
 /beans/
 /data/
+<<<<<<< HEAD
 /model/
 <<<<<<< HEAD
 /DTO/
 /agent/
 /data/
 =======
+=======
+>>>>>>> master
 /util/
-=======
-/beans/
 /model/
+<<<<<<< HEAD
 >>>>>>> agent-types
+>>>>>>> master
+=======
 >>>>>>> master

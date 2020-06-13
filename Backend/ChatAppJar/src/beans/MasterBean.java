@@ -24,6 +24,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
@@ -69,7 +70,7 @@ public class MasterBean extends AgentCenter {
 	Data data; // data for agents and agent types
 
 	@EJB
-	NetworkData networkData; // data for hosts
+	NetworkData networkData; // data for nodes
 
 	private String masterAddress;
 
@@ -83,70 +84,109 @@ public class MasterBean extends AgentCenter {
 	public void postConstruction() {
 		try {
 			connection = connectionFactory.createConnection("guest", "guest.guest.1");
+			System.out.println("Created a connection.");
 		} catch (JMSException ex) {
 			throw new IllegalStateException(ex);
 		}
 		System.out.println("Created AgentCenter!");
-		InetAddress inetAddress;
-		AgentCenter node = new AgentCenter();
+		//InetAddress inetAddress;
+		//AgentCenter node = new AgentCenter();
+
 		try {
-			inetAddress = InetAddress.getLocalHost();
+			AgentCenter node = new AgentCenter();
+			InetAddress inetAddress = InetAddress.getLocalHost();
 			node.setAddress(inetAddress.getHostAddress());
 			node.setAlias(inetAddress.getHostName() + networkData.getCounter());
+
 			networkData.setThisNode(node);
 			System.out.println("IP Address:- " + node.getAddress() + " alias: " + node.getAlias());
 
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		try {
-//					Host master=discovery();
-//					if (master!=null) {
-//						this.masterAddress=master.getAdress();
-//						data.setMaster(master);
-//						data.getNodes().add(node);
-//						System.out.println("slave created");
-//						handshake(node);
-//					}else {
-//						System.out.println("master created");
-//						data.setMaster(node);
-//					}
-			// ovo je iz sieboga
-			File f = getFile(SessionBean.class, "", "connections.properties");
-			FileInputStream fileInput;
-			fileInput = new FileInputStream(f);
-			Properties properties = new Properties();
+		
+				try {				
+					File f = getFile(SessionBean.class, "", "connections.properties");
+					FileInputStream fileInput;
+					fileInput = new FileInputStream(f);
+					Properties properties = new Properties();
 
-			try {
-				properties.load(fileInput);
-				fileInput.close();
-				this.masterAddress = properties.getProperty("master");
+					try {
+						properties.load(fileInput);
+						fileInput.close();
+						this.masterAddress = properties.getProperty("master");
+		
+						if (this.masterAddress == null || this.masterAddress.equals("")) {
+							System.out.println("master created");
+							networkData.setMaster(node);
+							this.masterAddress = node.getAddress();
+		
+						} else {
+							System.out.println("slave created");
+							handshake(node);
+						} 
+					}
+						catch (IOException e) {
 
-				if (this.masterAddress == null || this.masterAddress.equals("")) {
-					System.out.println("master created");
-					networkData.setMaster(node);
+							e.printStackTrace();
+						}
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
+				} catch (Exception e) {
 
-				} else {
-					System.out.println("slave created");
-					handshake(node);
-
-					/*
-					 * timer = new Timer(); timer.schedule(new TimerTask() {
-					 * 
-					 * @Override public void run() { heartbeat(); } }, 0, 1000 * 30 * 1); // every
-					 * 30 sec
-					 */
-
+					e.printStackTrace();
 				}
+	}
 
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+	public void sendTestMsg() {
+		try {
+			// ************************TEST KOMUNIKACIJE IZMEDJU
+			// AGENATA**********************//
+			AgentType agentType = new AgentType("collector", "lol-module");
+			data.getAgentTypes().add(agentType);
 
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			Collector testSender = new Collector();
+			AID aidSender = new AID("testSender", this.networkData.getMaster(), agentType);
+			testSender.setId(aidSender);
+
+			this.data.getAgents().add(testSender);
+			this.data.getRunningAgents().add(testSender);
+
+			Collector testReceiver = new Collector();
+			AID aidReceiver = new AID("testReceiver", this.networkData.getMaster(), agentType);
+			testReceiver.setId(aidReceiver);
+
+			this.data.getAgents().add(testReceiver);
+			this.data.getRunningAgents().add(testReceiver);
+
+			ACLMessage aclMessage = new ACLMessage();
+			aclMessage.setContent("Hejho");
+			aclMessage.setSender(aidSender);
+			// svima zasad
+			aclMessage.setRecievers(this.data.getRunningAIDs());
+
+			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+			connection.start();
+
+			MessageProducer producer = session.createProducer(this.defaultTopic);
+
+			ObjectMessage jmsMsg = session.createObjectMessage(aclMessage);
+
+//			Message message = session.createTextMessage();			
+//			ObjectMapper mapper = new ObjectMapper();
+//			String predictDTOJSON = "";
+//			
+//			try {
+//				predictDTOJSON = mapper.writeValueAsString(new predictDTO());
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//
+//			((TextMessage) message).setText(predictDTOJSON);
+
+			producer.send(jmsMsg);
+			producer.close();
+			connection.close();
+
+		} catch (JMSException e) {
 			e.printStackTrace();
 		}
 
@@ -195,7 +235,7 @@ public class MasterBean extends AgentCenter {
 				.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/master/node");
 		Response response = target.request().post(Entity.entity(node, "application/json"));
 		client.close();
-		if (response.equals("Ok"))
+		if (response.getStatus() == 200)
 			System.out.println("Node registered");
 		else
 			System.out.println("Node with same alias already exists");
@@ -391,28 +431,101 @@ public class MasterBean extends AgentCenter {
 		// return Response.noContent().build();
 	}
 
+
 	/*
-	 * OVAKO ILI OVO DOLE??????????????????
-	 * 
 	 * @GET
+	 * 
+	 * @Path("/node/agents/classes")
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON) public Response
+	 * getSupportedAgentsClasses() { // return list of agent types from new node to
+	 * master node return Response.ok(this.data.getAgentTypes(),
+	 * MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 * @POST
+	 * 
+	 * @Consumes(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Path("/node/agents/classes") public Response
+	 * registerAgentTypes(ArrayList<AgentType> agentTypes) {
+	 * this.data.setAgentTypes(agentTypes); // master setting agent types list to
+	 * other nodes return Response.ok("Ok", MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 * @POST
+	 * 
+	 * @Consumes(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Path("/nodes") public Response nodes(ArrayList<AgentCenter> nodes) {
+	 * this.networkData.setNodes(nodes); // master setting node list to other nodes
+	 * return Response.ok("Ok", MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 * @POST
+	 * 
+	 * @Consumes(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Path("/node/agents/classes/{alias}") public Response
+	 * nodes(@PathParam("alias") String alias, ArrayList<AgentType> agentTypes) { //
+	 * find node with given alias this.data.setAgentTypes(agentTypes); // master
+	 * setting node list to new node return Response.ok("Ok",
+	 * MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 * @POST
+	 * 
+	 * @Consumes(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Path("/node/agents/running") public Response
+	 * getRunningAgentsNode(ArrayList<Agent> agents) {
+	 * this.data.setRunningAgents(agents); return Response.ok("Ok",
+	 * MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 * @DELETE
 	 * 
 	 * @Path("/node/{alias}")
 	 * 
 	 * @Produces(MediaType.APPLICATION_JSON) public Response
-	 * getNode(@PathParam("alias") String alias) { return
-	 * Response.ok(this.networkData.getNode(alias),
+	 * deleteNode(@PathParam("alias") String alias) { // delete node from node list
+	 * this.networkData.deleteNode(alias);
+	 * 
+	 * // delete all node agent types and shut down agents from that node
+	 * ArrayList<Agent> toDelete = new ArrayList<>(); for (Agent agent :
+	 * this.data.getAgents()) { if
+	 * (agent.getId().getHost().getAlias().equals(alias)) { toDelete.add(agent); } }
+	 * 
+	 * for (Agent agent : toDelete) { this.data.deleteAgent(agent); }
+	 * 
+	 * return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+	 * 
+	 * // return Response.noContent().build(); }
+	 * 
+	 * 
+	 * @GET
+	 * 
+	 * @Path("/node")
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON) public Response getNode() { return
+	 * Response.ok(this.networkData.getThisNode(),
 	 * MediaType.APPLICATION_JSON).build(); }
 	 */
-
-	@GET
-	@Path("/node")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getNode() {
-		return Response.ok(this.networkData.getThisNode(), MediaType.APPLICATION_JSON).build();
-	}
-
 	// ******************************************AGENT-CENTER -
 	// CLIENT*******************************************//
+
+	@POST
+	@Path("/test")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response testMsg(predictDTO predictDTO) {
+		System.out.println("In test msg....");
+		this.sendTestMsg();
+		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+	}
 
 	@GET
 	@Path("/agents/classes")
@@ -435,137 +548,133 @@ public class MasterBean extends AgentCenter {
 		}
 
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+
 		// return list of agents which have been run
-		// return Response.ok(this.getRunningAgents(),
-		// MediaType.APPLICATION_JSON).build();
+		// return Response.ok(this.getRunningAgents(), MediaType.APPLICATION_JSON).build();
 	}
+	
+	 @GET
+	 @Path("/messages")
+	 @Produces(MediaType.APPLICATION_JSON) public Response getPerformatives() { 
+	  //return list of performatives from enum
+	 ArrayList<Performative> retVal = new ArrayList<Performative>();
+	  
+	  Performative[] performative = Performative.values();
+	  
+	  for (Performative p : performative)
+	  
+	  retVal.add(p);
+	  
+	  return Response.ok(retVal, MediaType.APPLICATION_JSON).build(); 
+} 
 
-	@PUT
-	@Path("/agents/running/{type}/{name}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
-		Agent retVal = new Agent(); // return agent which has been run
-		AID id = new AID();
-		/*
-		 * AID id = new AID();
-		 * 
-		 * retVal.getId().setType(this.data.getAgentTypes(id));
-		 * 
-		 * id.setType(this.data.getAgentType(type)); Agent retVal = data.getAgent(id);
-		 * //return agent which has been run this.data.getRunningAgents().add(retVal);
-		 * //add it to list of running agents
-		 */
-
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	}
-
-	@DELETE
-	@Path("/agents/running/{alias}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response stopAgent(@PathParam("aid") String aid) {
-		Agent retVal = new Agent(); // return agent which has been stopped
-
-		String agentId = retVal.getId().toString();
-		if (agentId == aid) {
-
-			this.data.getRunningAgents().remove(retVal);
-
-		}
-
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-
-	}
-
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("/messages")
-	public Response sendACLMessage(ACLMessage aclMessage) {
-
-		ACLMessage aclMess = new ACLMessage();
-
-		aclMess.setSender(aclMessage.getSender());
-
-		aclMess.setRecievers(aclMessage.getRecievers());
-
-		aclMess.setPerformative(aclMessage.getPerformative());
-
-		aclMess.setContent(aclMessage.getContent());
-
-		aclMess.setContentObj(aclMessage.getContentObj());
-
-		aclMess.setConversationId(aclMessage.getConversationId());
-
-		aclMess.setEncoding(aclMessage.getEncoding());
-
-		aclMess.setInReplyTo(aclMessage.getInReplyTo());
-
-		aclMess.setLanguage(aclMessage.getLanguage());
-
-		aclMess.setOntology(aclMessage.getOntology());
-
-		aclMess.setProtocol(aclMessage.getProtocol());
-
-		aclMess.setReplyBy(aclMessage.getReplyBy());
-
-		aclMess.setReplyTo(aclMessage.getReplyTo());
-
-		aclMess.setReplyWith(aclMessage.getReplyWith());
-
-		aclMess.setUserArgs(aclMessage.getUserArgs());
-
-		this.data.getAclMessages().add(aclMess);
-
-		return Response.ok("Ok.", MediaType.APPLICATION_JSON).build();
-	}
-
-	@GET
-	@Path("/messages")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getPerformatives() {
-		// return list of performatives from enum
-		ArrayList<Performative> retVal = new ArrayList<Performative>();
-
-		Performative[] performative = Performative.values();
-
-		for (Performative p : performative)
-
-			retVal.add(p);
-
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	}
-
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("/predict")
-	public Response predictResult(predictDTO predictDTO) {
-
-		try {
-			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			connection.start();
-			MessageProducer producer = session.createProducer(this.defaultTopic);
-			Message message = session.createTextMessage();
-			ObjectMapper mapper = new ObjectMapper();
-			String predictDTOJSON = "";
-			try {
-				predictDTOJSON = mapper.writeValueAsString(predictDTO);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			((TextMessage) message).setText(predictDTOJSON);
-			producer.send(message);
-			producer.close();
-			connection.close();
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
-
-		PredictResultDTO retVal = new PredictResultDTO();
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	}
-
+	/*
+	 * @PUT
+	 * 
+	 * @Path("/agents/running/{type}/{name}")
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON) public Response
+	 * runAgent(@PathParam("type") String type, @PathParam("name") String name) {
+	 * Agent retVal = new Agent(); // return agent which has been run AID id = new
+	 * AID();
+	 * 
+	 * //AID id = new AID();
+	 * 
+	 * //retVal.getId().setType(this.data.getAgentTypes(id));
+	 * 
+	 * //id.setType(this.data.getAgentType(type)); Agent retVal = data.getAgent(id);
+	 * //return agent which has been run this.data.getRunningAgents().add(retVal);
+	 * //add it to list of running agents
+	 * 
+	 * 
+	 * return Response.ok(retVal, MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 * @DELETE
+	 * 
+	 * @Path("/agents/running/{alias}")
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON) public Response
+	 * stopAgent(@PathParam("aid") String aid) { Agent retVal = new Agent(); //
+	 * return agent which has been stopped
+	 * 
+	 * String agentId = retVal.getId().toString(); if (agentId == aid) {
+	 * 
+	 * this.data.getRunningAgents().remove(retVal);
+	 * 
+	 * }
+	 * 
+	 * return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+	 * 
+	 * }
+	 * 
+	 * @POST
+	 * 
+	 * @Consumes(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Path("/messages") public Response sendACLMessage(ACLMessage aclMessage) {
+	 * 
+	 * ACLMessage aclMess = new ACLMessage();
+	 * 
+	 * aclMess.setSender(aclMessage.getSender());
+	 * 
+	 * aclMess.setRecievers(aclMessage.getRecievers());
+	 * 
+	 * aclMess.setPerformative(aclMessage.getPerformative());
+	 * 
+	 * aclMess.setContent(aclMessage.getContent());
+	 * 
+	 * aclMess.setContentObj(aclMessage.getContentObj());
+	 * 
+	 * aclMess.setConversationId(aclMessage.getConversationId());
+	 * 
+	 * aclMess.setEncoding(aclMessage.getEncoding());
+	 * 
+	 * aclMess.setInReplyTo(aclMessage.getInReplyTo());
+	 * 
+	 * aclMess.setLanguage(aclMessage.getLanguage());
+	 * 
+	 * aclMess.setOntology(aclMessage.getOntology());
+	 * 
+	 * aclMess.setProtocol(aclMessage.getProtocol());
+	 * 
+	 * aclMess.setReplyBy(aclMessage.getReplyBy());
+	 * 
+	 * aclMess.setReplyTo(aclMessage.getReplyTo());
+	 * 
+	 * aclMess.setReplyWith(aclMessage.getReplyWith());
+	 * 
+	 * aclMess.setUserArgs(aclMessage.getUserArgs());
+	 * 
+	 * this.data.getAclMessages().add(aclMess);
+	 * 
+	 * return Response.ok("Ok.", MediaType.APPLICATION_JSON).build(); }
+	 * 
+	 
+	 * @POST
+	 * 
+	 * @Consumes(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Produces(MediaType.APPLICATION_JSON)
+	 * 
+	 * @Path("/predict") public Response predictResult(predictDTO predictDTO) {
+	 * 
+	 * try { Session session = connection.createSession(false,
+	 * Session.AUTO_ACKNOWLEDGE); connection.start(); MessageProducer producer =
+	 * session.createProducer(this.defaultTopic); Message message =
+	 * session.createTextMessage(); ObjectMapper mapper = new ObjectMapper(); String
+	 * predictDTOJSON = ""; try { predictDTOJSON =
+	 * mapper.writeValueAsString(predictDTO); } catch (Exception e) {
+	 * e.printStackTrace(); }
+	 * 
+	 * ((TextMessage) message).setText(predictDTOJSON); producer.send(message);
+	 * producer.close(); connection.close(); } catch (JMSException e) {
+	 * e.printStackTrace(); }
+	 * 
+	 * PredictResultDTO retVal = new PredictResultDTO(); return Response.ok(retVal,
+	 * MediaType.APPLICATION_JSON).build(); }
+	 */
 	// ***********************************************PREBACITI KASNIJE U
 	// UTILS*******************************************//
 	public static File getFile(Class<?> c, String prefix, String fileName) {
