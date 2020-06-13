@@ -16,6 +16,13 @@ public class AID {
 		this.type = type;
 	}
 
+	public AID(String name, AgentCenter host, AgentType type) {
+		super();
+		this.name = name;
+		this.host = host;
+		this.type = type;
+	}
+
 	public AgentCenter getHost() {
 		return host;
 	}
@@ -39,7 +46,5 @@ public class AID {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	
 
 }
