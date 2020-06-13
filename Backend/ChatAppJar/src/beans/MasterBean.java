@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -31,6 +32,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -84,9 +86,7 @@ public class MasterBean extends AgentCenter {
 		} catch (JMSException ex) {
 			throw new IllegalStateException(ex);
 		}
-
 		System.out.println("Created AgentCenter!");
-
 		InetAddress inetAddress;
 		AgentCenter node = new AgentCenter();
 		try {
@@ -100,7 +100,6 @@ public class MasterBean extends AgentCenter {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
 		try {
 //					Host master=discovery();
 //					if (master!=null) {
@@ -118,6 +117,7 @@ public class MasterBean extends AgentCenter {
 			FileInputStream fileInput;
 			fileInput = new FileInputStream(f);
 			Properties properties = new Properties();
+
 			try {
 				properties.load(fileInput);
 				fileInput.close();
@@ -126,6 +126,7 @@ public class MasterBean extends AgentCenter {
 				if (this.masterAddress == null || this.masterAddress.equals("")) {
 					System.out.println("master created");
 					networkData.setMaster(node);
+
 				} else {
 					System.out.println("slave created");
 					handshake(node);
@@ -138,10 +139,12 @@ public class MasterBean extends AgentCenter {
 					 */
 
 				}
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,8 +163,9 @@ public class MasterBean extends AgentCenter {
 			if (!(networkData.getNodes().get(i).getAlias()).equals(alias)) {
 				System.out.println(i + 1 + "/" + networkData.getNodes().size());
 				ResteasyClient client = new ResteasyClientBuilder().build();
-				ResteasyWebTarget target = client.target(
-						"http://" + networkData.getNodes().get(i).getAddress() + ":8080/ChatAppWar/rest/node/" + alias);
+
+				ResteasyWebTarget target = client.target("http://" + networkData.getNodes().get(i).getAddress()
+						+ ":8080/ChatAppWar/rest/master/node/" + alias);
 				Response response = target.request().delete();
 				String ret = response.readEntity(String.class);
 				System.out.println("deleted node from " + networkData.getNodes().get(i).getAlias());
@@ -186,7 +190,9 @@ public class MasterBean extends AgentCenter {
 	public void register(AgentCenter node) {
 		System.out.println("Registering node:");
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/node");
+
+		ResteasyWebTarget target = client
+				.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/master/node");
 		Response response = target.request().post(Entity.entity(node, "application/json"));
 		client.close();
 		if (response.equals("Ok"))
@@ -196,11 +202,21 @@ public class MasterBean extends AgentCenter {
 	}
 
 	public void sendNodesToNewNode(AgentCenter node) {
+		System.out.println("****NODE ADDRESS: " + node.getAddress());
+		AgentCenter ac = new AgentCenter("alias", "192.168.0.102");
+		// AgentType at = new AgentType("node", "modules");
+		
+		// AID aid = new AID("imee", ac, at);
+		this.networkData.getNodes().add(ac);
+		
 
 		try {
 			// throw new EmptyStackException();
+			System.out.println("try send nodes to new");
 			ResteasyClient client1 = new ResteasyClientBuilder().build();
-			ResteasyWebTarget target1 = client1.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/nodes");
+
+			ResteasyWebTarget target1 = client1
+					.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/master/nodes");
 			Response response1 = target1.request().post(Entity.entity(networkData.getNodes(), "application/json"));
 			String ret1 = response1.readEntity(String.class);
 			System.out.println("Sent node info to new node.");
@@ -211,7 +227,7 @@ public class MasterBean extends AgentCenter {
 				// throw new EmptyStackException();
 				ResteasyClient client1 = new ResteasyClientBuilder().build();
 				ResteasyWebTarget target1 = client1
-						.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/nodes");
+						.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/master/nodes");
 
 				Response response1 = target1.request().post(Entity.entity(networkData.getNodes(), "application/json"));
 				String ret1 = response1.readEntity(String.class);
@@ -226,12 +242,21 @@ public class MasterBean extends AgentCenter {
 	}
 
 	public void sendNewNodeToNodes(AgentCenter node) {
+		System.out.println("****** NODES heh: " + node.getAddress());
+		// AgentCenter ac = new AgentCenter("alias", "192.168.0.102");
+		// AgentType at = new AgentType("node", "modules");
+		
+		// AID aid = new AID("imee", ac, at);
+		//this.networkData.getNodes().add(ac);
+		System.out.println("sending new node to nodes");
+
 		// send info about new node to other nodes
 		for (AgentCenter agentCenter : networkData.getNodes()) {
 			if (!agentCenter.getAlias().equals(node.getAlias())) {
 				ResteasyClient client = new ResteasyClientBuilder().build();
-				ResteasyWebTarget target = client
-						.target("http://" + agentCenter.getAddress() + ":8080/ChatAppWar/rest/node");
+
+				ResteasyWebTarget target = client.target("http://" + agentCenter.getAddress() + 
+						":8080/ChatAppWar/rest/master/node");
 				Response response = target.request().post(Entity.entity(node, "application/json"));
 				String ret = response.readEntity(String.class);
 				System.out.println("Sent new node to other nodes.");
@@ -258,14 +283,22 @@ public class MasterBean extends AgentCenter {
 	@Path("/node")
 	public Response registerNode(AgentCenter agentCenter) {
 
-		if (networkData.getThisNode().getAddress().equals(masterAddress)) {
-			// master registering new node
+		System.out.println("******AGENT ALLIAS:" + agentCenter.getAddress()+"******");
+		
+		if(networkData.getThisNode().getAddress().equals(masterAddress)) {
+			System.out.println("imal te rodjo");
+			System.out.println("***master adresa + " + masterAddress);
+			//master registering new node 
 			for (AgentCenter a : networkData.getNodes()) {
+				System.out.println("****All nodes:*** "+ a.getAlias() + "** " + a.getAddress());
 				if (a.getAlias().equals(agentCenter.getAlias()))
-					// already exists
-					return Response.ok("Cancel", MediaType.APPLICATION_JSON).build();
+					//already exists
+					return Response.status(400).build();
 			}
-
+//			networkData.getNodes().add(agentCenter);
+//			System.out.println("New node registered.");
+//			sendNodesToNewNode(agentCenter);
+		
 			new Thread(new Runnable() {
 				public void run() {
 					networkData.getNodes().add(agentCenter);
@@ -275,13 +308,17 @@ public class MasterBean extends AgentCenter {
 				}
 			}).start();
 
-			return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+			
+			return Response.status(200).build();
 		}
 		// other nodes registering new node from master
 		networkData.getNodes().add(agentCenter);
-		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
 
-	}
+
+		return Response.status(200).build();
+
+		
+}
 
 	@GET
 	@Path("/node/agents/classes")
@@ -305,7 +342,9 @@ public class MasterBean extends AgentCenter {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/nodes")
 	public Response nodes(ArrayList<AgentCenter> nodes) {
-		this.networkData.setNodes(nodes); // master setting node list to other nodes
+
+		System.out.println("***List: " + nodes + "***");
+		this.networkData.setNodes(nodes);		//master setting node list to other nodes
 		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
 	}
 
@@ -380,13 +419,15 @@ public class MasterBean extends AgentCenter {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAgentsClasses() {
 		// return list of agent types
+		System.out.println("***Agent types:---" + this.data.getAgentTypes());
 		return Response.ok(this.data.getAgentTypes(), MediaType.APPLICATION_JSON).build();
 	}
-
+	
 	@GET
 	@Path("/agents/running")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getRunningAgents() {
+		System.out.println("***Running agents:---" + this.data.getRunningAgents());
 		ArrayList<Agent> retVal = new ArrayList<>(); // return list of agents which have been run
 
 		for (Agent agent : data.getRunningAgents()) {

@@ -14,7 +14,7 @@
                                     </th>
                                 </thead>
                                 <tbody>
-                                    <tr *ngFor="let agent of runningAgents" [class.selected]="agent === selectedAgent"
+                                    <tr *ngFor="let agent of running" [class.selected]="agent === selectedAgent"
                                         (click)="onSelectAgent(agent)">
                                         <td>
                                             <span class="badge">{{agent}}</span>
@@ -80,7 +80,8 @@
                                     <tr *ngFor="let type of agentTypes" [class.selected]="type === selectedType"
                                         (click)="onSelectType(type)">
                                         <td>
-                                            <span class="badge">{{type}}</span>
+                                            <span class="badge">{{type.name}}</span>
+
                                         </td>
                                     </tr>
                                 </tbody>
@@ -107,7 +108,8 @@
                                     <form>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <p> Type : {{selectedType}} </p>
+                                                <p> Type : {{selectedType.name}} </p>
+
                                             </div>
                                         </div>
                                     </form>

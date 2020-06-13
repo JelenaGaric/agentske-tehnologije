@@ -1,4 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { AgentType } from 'src/app/model/agentType';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AgentListService } from 'src/app/services/agent-list.service';
+import { Agent } from  'src/app/model/agent';
+
 
 @Component({
   selector: 'app-agent-lists',
@@ -7,14 +12,34 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AgentListsComponent implements OnInit {
 
-  runningAgents: string[]= ["agent1", "agent2"]
-  agentTypes: string[] = []
-  selectedAgent :string
-  selectedType :string
+  agentType: AgentType
+  agentTypes: AgentType[] = []
 
-  constructor() { }
+  running: Agent[] = []
+
+
+  // runningAgents: string[]= ["agent1", "agent2"]
+  // agentTypes: string[] = [tip1", "tip2"]
+  // selectedAgent :string
+  // selected type: string
+  selectedAgent :Agent
+  selectedType : AgentType
+
+  constructor(private router: Router, private route: ActivatedRoute, private service: AgentListService) { 
+    this.agentType = new AgentType();
+    this.selectedType = new AgentType();
+    this.selectedAgent = new Agent();
+  }
 
   ngOnInit(): void {
+    this.service.getAgentType().subscribe(data => {
+      this.agentTypes = data;
+
+      this.service.getAgents().subscribe(data1 => {
+        this.running = data1;
+      })
+    });
+    
   }
 
   onSelectAgent(agent){
@@ -23,5 +48,7 @@ export class AgentListsComponent implements OnInit {
   onSelectType(type){
     this.selectedType=type
   }
+
+ 
 
 }
