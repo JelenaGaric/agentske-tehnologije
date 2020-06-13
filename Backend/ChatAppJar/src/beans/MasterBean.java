@@ -86,46 +86,22 @@ public class MasterBean extends AgentCenter {
 		}
 
 		System.out.println("Created AgentCenter!");
-		
+
 		InetAddress inetAddress;
 		AgentCenter node = new AgentCenter();
-		inetAddress = InetAddress.getLocalHost();
-		node.setAddress(inetAddress.getHostAddress());
-		node.setAlias(inetAddress.getHostName() + networkData.getCounter());
-		Agent test = new Agent(); 
-		test.setId(new AID("test",node,new Collector() ));
 		try {
-			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			connection.start();
-			MessageProducer producer = session.createProducer(this.defaultTopic);
-			Message message = session.createTextMessage();
-			ObjectMapper mapper = new ObjectMapper();
-			String predictDTOJSON = "";
-			try {
-				predictDTOJSON = mapper.writeValueAsString(new predictDTO());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			((TextMessage) message).setText(predictDTOJSON);
-			producer.send(message);
-			producer.close();
-			connection.close();
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
-		
-		
-		try {
-			AgentCenter node = new AgentCenter();
 			inetAddress = InetAddress.getLocalHost();
 			node.setAddress(inetAddress.getHostAddress());
 			node.setAlias(inetAddress.getHostName() + networkData.getCounter());
-			// this.currentNode = (node);
 			networkData.setThisNode(node);
 			System.out.println("IP Address:- " + node.getAddress() + " alias: " + node.getAlias());
 
-			try {
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		try {
 //					Host master=discovery();
 //					if (master!=null) {
 //						this.masterAddress=master.getAdress();
@@ -137,40 +113,37 @@ public class MasterBean extends AgentCenter {
 //						System.out.println("master created");
 //						data.setMaster(node);
 //					}
-				// ovo je iz sieboga
-				File f = getFile(SessionBean.class, "", "connections.properties");
-				FileInputStream fileInput;
-				fileInput = new FileInputStream(f);
-				Properties properties = new Properties();
-				try {
-					properties.load(fileInput);
-					fileInput.close();
-					this.masterAddress = properties.getProperty("master");
+			// ovo je iz sieboga
+			File f = getFile(SessionBean.class, "", "connections.properties");
+			FileInputStream fileInput;
+			fileInput = new FileInputStream(f);
+			Properties properties = new Properties();
+			try {
+				properties.load(fileInput);
+				fileInput.close();
+				this.masterAddress = properties.getProperty("master");
 
-					if (this.masterAddress == null || this.masterAddress.equals("")) {
-						System.out.println("master created");
-						networkData.setMaster(node);
-					} else {
-						System.out.println("slave created");
-						handshake(node);
+				if (this.masterAddress == null || this.masterAddress.equals("")) {
+					System.out.println("master created");
+					networkData.setMaster(node);
+				} else {
+					System.out.println("slave created");
+					handshake(node);
 
-						/*
-						 * timer = new Timer(); timer.schedule(new TimerTask() {
-						 * 
-						 * @Override public void run() { heartbeat(); } }, 0, 1000 * 30 * 1); // every
-						 * 30 sec
-						 */
+					/*
+					 * timer = new Timer(); timer.schedule(new TimerTask() {
+					 * 
+					 * @Override public void run() { heartbeat(); } }, 0, 1000 * 30 * 1); // every
+					 * 30 sec
+					 */
 
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		} catch (UnknownHostException e) {
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

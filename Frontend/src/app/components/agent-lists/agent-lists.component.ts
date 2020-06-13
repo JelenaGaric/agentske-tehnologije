@@ -17,4 +17,11 @@ export class AgentListsComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  onSelectAgent(agent){
+    this.selectedAgent=agent
+  }
+  onSelectType(type){
+    this.selectedType=type
+  }
+
 }
