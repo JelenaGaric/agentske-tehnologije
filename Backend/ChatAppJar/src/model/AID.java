@@ -21,6 +21,13 @@ public class AID  implements Serializable{
 		super();
 	}
 
+	public AID(AgentCenter host, AgentType type) {
+		super();
+		this.host = host;
+		this.type = type;
+	}
+
+
 	public AgentCenter getHost() {
 		return host;
 	}
@@ -44,7 +51,5 @@ public class AID  implements Serializable{
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	
 
 }

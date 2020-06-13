@@ -14,6 +14,7 @@ import javax.ejb.Singleton;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
+import model.AgentCenter;
 import model.AgentType;
 
 @Singleton
@@ -23,13 +24,35 @@ import model.AgentType;
 public class Data implements DataLocal{
 
 	private List<Agent> agents = new ArrayList<Agent>();
-	private List<Agent> runningAgents = new ArrayList<Agent>();
-	private List<AgentType> agentTypes = new ArrayList<AgentType>();
+	private static List<Agent> runningAgents = new ArrayList<Agent>();
+	private static List<AgentType> agentTypes = new ArrayList<AgentType>();
 	private List<ACLMessage> aclMessages = new ArrayList<ACLMessage>();
 	
 	public Data() {}
 	
-	@Override
+	static {
+		AgentType agentType = new AgentType();
+		agentType.setModule("Modul 1");
+		agentType.setName("Agent tip 1");
+		agentTypes.add(agentType);
+		
+		AgentType agentType2 = new AgentType();
+		agentType2.setModule("Modul 2");
+		agentType2.setName("Agent tip 2");
+		agentTypes.add(agentType2);
+
+		AID aid = new AID();
+		aid.setHost(new AgentCenter("alijas", "adresa"));
+		aid.setName("aid ime");
+		aid.setType(agentType);
+		//Agent agent = new Agent();
+		//agent.setId(aid);
+		
+		//runningAgents.add(agent);
+		
+
+	}
+
 	@Lock(LockType.READ)
 	public List<Agent> getAgents() {
 		return agents;
