@@ -1,6 +1,7 @@
 package DTO;
 
 public class PredictResultDTO {
+	
 	private double certainty;
 	private boolean result;
 	

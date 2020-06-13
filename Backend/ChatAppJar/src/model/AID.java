@@ -6,6 +6,13 @@ public class AID {
 	private AgentCenter host;
 	private AgentType type;
 
+	public AID(String name, AgentCenter host, AgentType type) {
+		super();
+		this.name = name;
+		this.host = host;
+		this.type = type;
+	}
+
 	public AID() {
 		super();
 	}
