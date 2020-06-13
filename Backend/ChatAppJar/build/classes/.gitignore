@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-/DTO/
-/META-INF/
 /agent/
 /beans/
 /data/
-/model/
 /util/
-=======
-/beans/
 /model/
->>>>>>> agent-types
