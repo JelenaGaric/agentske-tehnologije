@@ -18,22 +18,26 @@ import model.Host;
 @LocalBean
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 @AccessTimeout(value = 120000)
-public class NetworkData {
+public class NetworkData implements NetworkDataLocal{
 
 	private List<AgentCenter> nodes = new ArrayList<>();
 	private AgentCenter master;
 	private AgentCenter thisNode;
 
 	private int counter = 0;
-
+	
+	
+	public NetworkData() {}
+	
+	@Override
 	public AgentCenter getThisNode() {
 		return thisNode;
 	}
-
+	@Override
 	public void setThisNode(AgentCenter thisNode) {
 		this.thisNode = thisNode;
 	}
-	
+	@Override
 	@Lock(LockType.READ)
 	public AgentCenter getNode(String alias) {
 		for(AgentCenter agentCenter : this.nodes) {
@@ -43,17 +47,17 @@ public class NetworkData {
 		}
 		return null;
 	}
-	
+	@Override
 	@Lock(LockType.READ)
 	public List<AgentCenter> getNodes() {
 		return nodes;
 	}
-	
+	@Override
 	@Lock(LockType.WRITE)
 	public void setNodes(List<AgentCenter> nodes) {
 		this.nodes = nodes;
 	}
-
+	@Override
 	@Lock(LockType.WRITE)
 	public boolean deleteNode(String alias) {
 		AgentCenter toDelete = null;
@@ -68,22 +72,22 @@ public class NetworkData {
 		}
 		return false;
 	}
-	
+	@Override
 	@Lock(LockType.READ)
 	public AgentCenter getMaster() {
 		return master;
 	}
-	
+	@Override
 	@Lock(LockType.WRITE)
 	public void setMaster(AgentCenter master) {
 		this.master = master;
 	}
-
+	@Override
 	@Lock(LockType.READ)
 	public int getCounter() {
 		return counter;
 	}
-	
+	@Override
 	@Lock(LockType.WRITE)
 	public void setCounter(int counter) {
 		this.counter = counter;
