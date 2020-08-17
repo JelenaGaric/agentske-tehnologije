@@ -20,7 +20,8 @@ public interface DataLocal {
 	void setRunningAgents(List<Agent> runningAgents);
 	List<ACLMessage> getAclMessages();
 	void setAclMessages(List<ACLMessage> aclMessages);
-	Agent agentName(String name);
+	Agent getAgentByName(String name);
+	AID getAIDByIndex(int index);
 	Agent getAgent(AID id);
 	AgentType getAgentType(String type);
 	void deleteAgent(Agent agent);
@@ -29,4 +30,5 @@ public interface DataLocal {
 	ArrayList<Agent> getRunningAgentsByType(AgentType agentType);
 	void stopRunningAgent(AID aid);
 	void stopRunningAgents();
+	boolean agentTypeExists(String name);
 }

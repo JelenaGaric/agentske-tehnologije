@@ -22,7 +22,7 @@ import util.JNDILookup;
 		@ActivationConfigProperty(propertyName = "destination", propertyValue = "jms/topic/publicTopic") })
 public class MDBConsumer implements MessageListener {
 
-	//private static Context remoteContext;
+	// private static Context remoteContext;
 
 	@EJB
 	DataLocal data;
@@ -33,40 +33,25 @@ public class MDBConsumer implements MessageListener {
 
 	@Override
 	public void onMessage(Message message) {
-//		AgentType agentType = new AgentType("collector", "lol-module");
-//		this.data.getAgentTypes().add(agentType);
-//		for(AgentType at:data.getAgentTypes()) {
-//			System.out.println("iz mdba "+at.getName());
-//		}
-//		AID aid = new AID("test", networkData.getMaster(), agentType);
-//		lh.lookupAgent(aid);
-//		System.out.println("done");
 		try {
 			ACLMessage aclMessage = (ACLMessage) ((ObjectMessage) message).getObject();
-			//acl.receivers.get(i);
-			//deliverMessage(acl, aid);
-			for(AID aid : aclMessage.getRecievers()) {
-				System.out.println(aid.getName());
+			int i = message.getIntProperty("AIDIndex");
+			AID aid = aclMessage.getRecievers().get(i);
+			
+			Agent agent = lh.lookupAgent(aid);
 
-				//da li da lookup helper dobavlja ili direktno jndi
-				//Agent agent = lh.lookupAgent(aid);
-				Agent agent = JNDILookup.lookUp(JNDILookup.CollectorLookup, CollectorRemote.class);
-				System.out.println(agent);
-
-				if(agent != null) {
-					agent.handleMessage(aclMessage);
-				}
+			if(agent != null) {
+				agent.handleMessage(aclMessage);
 			}
-		} catch (JMSException ex) {
+			
+		} catch(JMSException ex) {
 			System.out.println("MDB consumer cannot process message.");
 		}
-		
-	}
-	
+
+ }
+
 	public void test() {
-		
+
 	}
-		
-		
 
 }

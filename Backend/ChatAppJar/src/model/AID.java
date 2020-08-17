@@ -2,10 +2,10 @@ package model;
 
 import java.io.Serializable;
 
-public class AID  implements Serializable{
-	
+public class AID implements Serializable {
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private String name;
 	private AgentCenter host;
 	private AgentType type;
@@ -26,7 +26,6 @@ public class AID  implements Serializable{
 		this.host = host;
 		this.type = type;
 	}
-
 
 	public AgentCenter getHost() {
 		return host;

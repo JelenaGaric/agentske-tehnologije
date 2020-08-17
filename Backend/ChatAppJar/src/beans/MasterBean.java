@@ -48,9 +48,11 @@ import org.jboss.vfs.VirtualFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import DTO.ACLMessageDTO;
 import DTO.PredictResultDTO;
 import DTO.predictDTO;
 import agent.Collector;
+import agent.Predictor;
 import data.Data;
 import data.NetworkData;
 import model.ACLMessage;
@@ -89,8 +91,8 @@ public class MasterBean extends AgentCenter {
 			throw new IllegalStateException(ex);
 		}
 		System.out.println("Created AgentCenter!");
-		//InetAddress inetAddress;
-		//AgentCenter node = new AgentCenter();
+		// InetAddress inetAddress;
+		// AgentCenter node = new AgentCenter();
 
 		try {
 			AgentCenter node = new AgentCenter();
@@ -101,93 +103,120 @@ public class MasterBean extends AgentCenter {
 			networkData.setThisNode(node);
 			System.out.println("IP Address:- " + node.getAddress() + " alias: " + node.getAlias());
 
-		
-				try {				
-					File f = getFile(SessionBean.class, "", "connections.properties");
-					FileInputStream fileInput;
-					fileInput = new FileInputStream(f);
-					Properties properties = new Properties();
+			try {
+				File f = getFile(SessionBean.class, "", "connections.properties");
+				FileInputStream fileInput;
+				fileInput = new FileInputStream(f);
+				Properties properties = new Properties();
 
-					try {
-						properties.load(fileInput);
-						fileInput.close();
-						this.masterAddress = properties.getProperty("master");
-		
-						if (this.masterAddress == null || this.masterAddress.equals("")) {
-							System.out.println("master created");
-							networkData.setMaster(node);
-							this.masterAddress = node.getAddress();
-		
-						} else {
-							System.out.println("slave created");
-							handshake(node);
-						} 
-					}
-						catch (IOException e) {
+				try {
+					properties.load(fileInput);
+					fileInput.close();
+					this.masterAddress = properties.getProperty("master");
 
-							e.printStackTrace();
-						}
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
+					if (this.masterAddress == null || this.masterAddress.equals("")) {
+						System.out.println("master created");
+						networkData.setMaster(node);
+						this.masterAddress = node.getAddress();
+
+					} else {
+						System.out.println("slave created");
+						handshake(node);
 					}
-				} catch (Exception e) {
+				} catch (IOException e) {
 
 					e.printStackTrace();
 				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
 	}
 
-	public void sendTestMsg() {
+	@POST
+	@Path("/test")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response testMsg(ACLMessageDTO aclMessageDTO) {
+		System.out.println("In test msg....");
+		ACLMessage aclMessage = new ACLMessage();
+		aclMessage.setContent(aclMessageDTO.getContent());
+
+		AID sender = this.data.getAIDByIndex(aclMessageDTO.getSenderIndex());
+		
+		List<AID> receivers = new ArrayList<>();
+		for(int receiverIndex: aclMessageDTO.getReceiverIndexes()) {
+			receivers.add(this.data.getAIDByIndex(receiverIndex));
+		}
+		
+		if(sender == null || receivers.size() == 0) {
+			System.out.println("You need to set a sender and receivers.");
+		    return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+		
+		aclMessage.setSender(sender);
+		aclMessage.setRecievers(receivers);
+		
+		this.sendTestMsg(aclMessage);
+		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
+	}
+	
+	public void sendTestMsg(ACLMessage aclMessage) {
 		try {
+			// metoda koja ce slati preko JMSa poruku MDBConsumeru, koji ce uraditi lookup
+			// za agenta koji je receiver u ACL poruci i poslati mu poruku
 			// ************************TEST KOMUNIKACIJE IZMEDJU
 			// AGENATA**********************//
-			AgentType agentType = new AgentType("collector", "lol-module");
+			/*AgentType agentType = new AgentType("collector", "lol-module");
 			data.getAgentTypes().add(agentType);
 
 			Collector testSender = new Collector();
 			AID aidSender = new AID("testSender", this.networkData.getMaster(), agentType);
 			testSender.setId(aidSender);
-
 			this.data.getAgents().add(testSender);
 			this.data.getRunningAgents().add(testSender);
 
 			Collector testReceiver = new Collector();
 			AID aidReceiver = new AID("testReceiver", this.networkData.getMaster(), agentType);
 			testReceiver.setId(aidReceiver);
-
 			this.data.getAgents().add(testReceiver);
 			this.data.getRunningAgents().add(testReceiver);
+			*/
+			
 
-			ACLMessage aclMessage = new ACLMessage();
-			aclMessage.setContent("Hejho");
-			aclMessage.setSender(aidSender);
-			// svima zasad
-			aclMessage.setRecievers(this.data.getRunningAIDs());
+			// ovo nadalje samo treba da se nalazi u metodi, sve inad je samo priprema
+			// (zakucano) jer trenutno nemamo pravo slanje acl poruka i agente u bazi nego
+			// ih pravim iznad
 
-			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			connection.start();
-
-			MessageProducer producer = session.createProducer(this.defaultTopic);
-
-			ObjectMessage jmsMsg = session.createObjectMessage(aclMessage);
-
-//			Message message = session.createTextMessage();			
-//			ObjectMapper mapper = new ObjectMapper();
-//			String predictDTOJSON = "";
-//			
-//			try {
-//				predictDTOJSON = mapper.writeValueAsString(new predictDTO());
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//
-//			((TextMessage) message).setText(predictDTOJSON);
-
-			producer.send(jmsMsg);
-			producer.close();
-			connection.close();
+			for (int i = 0; i < aclMessage.getRecievers().size(); i++) {
+				if (aclMessage.getRecievers().get(i) == null) {
+					throw new IllegalArgumentException("AID cannot be null.");
+				}
+				// postToReceiver(msg, i, delayMillisec);
+				postToReceiver(aclMessage, i);
+			}
 
 		} catch (JMSException e) {
 			e.printStackTrace();
+		}
+
+	}
+
+	private void postToReceiver(ACLMessage msg, int index) throws JMSException {
+		System.out.println("ovdje");
+		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		connection.start();
+
+		MessageProducer producer = session.createProducer(this.defaultTopic);
+		try {
+			ObjectMessage jmsMsg = session.createObjectMessage(msg);
+			jmsMsg.setIntProperty("AIDIndex", index);
+			producer.send(jmsMsg);
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
 		}
 
 	}
@@ -231,8 +260,7 @@ public class MasterBean extends AgentCenter {
 		System.out.println("Registering node:");
 		ResteasyClient client = new ResteasyClientBuilder().build();
 
-		ResteasyWebTarget target = client
-				.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/master/node");
+		ResteasyWebTarget target = client.target("http://" + this.masterAddress + ":8080/ChatAppWar/rest/master/node");
 		Response response = target.request().post(Entity.entity(node, "application/json"));
 		client.close();
 		if (response.getStatus() == 200)
@@ -245,10 +273,9 @@ public class MasterBean extends AgentCenter {
 		System.out.println("****NODE ADDRESS: " + node.getAddress());
 		AgentCenter ac = new AgentCenter("alias", "192.168.0.102");
 		// AgentType at = new AgentType("node", "modules");
-		
+
 		// AID aid = new AID("imee", ac, at);
 		this.networkData.getNodes().add(ac);
-		
 
 		try {
 			// throw new EmptyStackException();
@@ -285,9 +312,9 @@ public class MasterBean extends AgentCenter {
 		System.out.println("****** NODES heh: " + node.getAddress());
 		// AgentCenter ac = new AgentCenter("alias", "192.168.0.102");
 		// AgentType at = new AgentType("node", "modules");
-		
+
 		// AID aid = new AID("imee", ac, at);
-		//this.networkData.getNodes().add(ac);
+		// this.networkData.getNodes().add(ac);
 		System.out.println("sending new node to nodes");
 
 		// send info about new node to other nodes
@@ -295,8 +322,8 @@ public class MasterBean extends AgentCenter {
 			if (!agentCenter.getAlias().equals(node.getAlias())) {
 				ResteasyClient client = new ResteasyClientBuilder().build();
 
-				ResteasyWebTarget target = client.target("http://" + agentCenter.getAddress() + 
-						":8080/ChatAppWar/rest/master/node");
+				ResteasyWebTarget target = client
+						.target("http://" + agentCenter.getAddress() + ":8080/ChatAppWar/rest/master/node");
 				Response response = target.request().post(Entity.entity(node, "application/json"));
 				String ret = response.readEntity(String.class);
 				System.out.println("Sent new node to other nodes.");
@@ -323,22 +350,22 @@ public class MasterBean extends AgentCenter {
 	@Path("/node")
 	public Response registerNode(AgentCenter agentCenter) {
 
-		System.out.println("******AGENT ALLIAS:" + agentCenter.getAddress()+"******");
-		
-		if(networkData.getThisNode().getAddress().equals(masterAddress)) {
+		System.out.println("******AGENT ALLIAS:" + agentCenter.getAddress() + "******");
+
+		if (networkData.getThisNode().getAddress().equals(masterAddress)) {
 			System.out.println("imal te rodjo");
 			System.out.println("***master adresa + " + masterAddress);
-			//master registering new node 
+			// master registering new node
 			for (AgentCenter a : networkData.getNodes()) {
-				System.out.println("****All nodes:*** "+ a.getAlias() + "** " + a.getAddress());
+				System.out.println("****All nodes:*** " + a.getAlias() + "** " + a.getAddress());
 				if (a.getAlias().equals(agentCenter.getAlias()))
-					//already exists
+					// already exists
 					return Response.status(400).build();
 			}
 //			networkData.getNodes().add(agentCenter);
 //			System.out.println("New node registered.");
 //			sendNodesToNewNode(agentCenter);
-		
+
 			new Thread(new Runnable() {
 				public void run() {
 					networkData.getNodes().add(agentCenter);
@@ -348,17 +375,14 @@ public class MasterBean extends AgentCenter {
 				}
 			}).start();
 
-			
 			return Response.status(200).build();
 		}
 		// other nodes registering new node from master
 		networkData.getNodes().add(agentCenter);
 
-
 		return Response.status(200).build();
 
-		
-}
+	}
 
 	@GET
 	@Path("/node/agents/classes")
@@ -384,7 +408,7 @@ public class MasterBean extends AgentCenter {
 	public Response nodes(ArrayList<AgentCenter> nodes) {
 
 		System.out.println("***List: " + nodes + "***");
-		this.networkData.setNodes(nodes);		//master setting node list to other nodes
+		this.networkData.setNodes(nodes); // master setting node list to other nodes
 		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
 	}
 
@@ -430,7 +454,6 @@ public class MasterBean extends AgentCenter {
 
 		// return Response.noContent().build();
 	}
-
 
 	/*
 	 * @GET
@@ -517,15 +540,7 @@ public class MasterBean extends AgentCenter {
 	// ******************************************AGENT-CENTER -
 	// CLIENT*******************************************//
 
-	@POST
-	@Path("/test")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response testMsg(predictDTO predictDTO) {
-		System.out.println("In test msg....");
-		this.sendTestMsg();
-		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
-	}
+
 
 	@GET
 	@Path("/agents/classes")
@@ -535,7 +550,7 @@ public class MasterBean extends AgentCenter {
 		System.out.println("***Agent types:---" + this.data.getAgentTypes());
 		return Response.ok(this.data.getAgentTypes(), MediaType.APPLICATION_JSON).build();
 	}
-	
+
 	@GET
 	@Path("/agents/running")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -550,45 +565,77 @@ public class MasterBean extends AgentCenter {
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 
 		// return list of agents which have been run
-		// return Response.ok(this.getRunningAgents(), MediaType.APPLICATION_JSON).build();
+		// return Response.ok(this.getRunningAgents(),
+		// MediaType.APPLICATION_JSON).build();
 	}
-	
-	 @GET
-	 @Path("/messages")
-	 @Produces(MediaType.APPLICATION_JSON) public Response getPerformatives() { 
-	  //return list of performatives from enum
-	 ArrayList<Performative> retVal = new ArrayList<Performative>();
-	  
-	  Performative[] performative = Performative.values();
-	  
-	  for (Performative p : performative)
-	  
-	  retVal.add(p);
-	  
-	  return Response.ok(retVal, MediaType.APPLICATION_JSON).build(); 
-} 
+
+	@GET
+	@Path("/messages")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getPerformatives() {
+		// return list of performatives from enum
+		ArrayList<Performative> retVal = new ArrayList<Performative>();
+
+		Performative[] performative = Performative.values();
+
+		for (Performative p : performative)
+
+			retVal.add(p);
+
+		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+	}
+
+	@PUT
+	@Path("/agents/running/{type}/{name}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
+		// return agent which has been run AID id = new	AID();
+		AgentType agentType = this.data.getAgentType(type);
+		
+		if(agentType == null) {
+			System.out.println("Type not found, creating new one...");
+			agentType = new AgentType();
+			agentType.setName(type);
+			//default module
+			agentType.setModule("lol-module");
+			this.data.getAgentTypes().add(agentType);
+		} else {
+			System.out.println("Found type " + agentType.getName());
+		}
+		
+		Agent agent = this.data.getAgentByName(name);
+		
+		if(agent == null) {
+			System.out.println("Agent with given name not found, creating new one...");
+			//zasad ovako
+			if(agentType.getName().equals("collector")) {
+				agent = new Collector();
+			} else if(agentType.getName().equals("predictor")) {
+				agent = new Predictor();
+			} else {
+				System.out.println("Agent cannot be created.");
+			    return Response.status(Response.Status.BAD_REQUEST).build();
+			}
+		
+			AID aid = new AID(this.networkData.getMaster(), agentType);
+			aid.setName(name);
+			agent.setId(aid);
+			
+			this.data.getAgents().add(agent);
+		} else {
+			System.out.println("Found agent with name " + agent.getId().getName());
+		}
+		
+		if(!this.data.getRunningAgents().contains(agent))
+			this.data.getRunningAgents().add(agent);
+		else
+			System.out.println("The agent has already been run.");
+		
+		return Response.ok(agent, MediaType.APPLICATION_JSON).build();
+	}
+
 
 	/*
-	 * @PUT
-	 * 
-	 * @Path("/agents/running/{type}/{name}")
-	 * 
-	 * @Produces(MediaType.APPLICATION_JSON) public Response
-	 * runAgent(@PathParam("type") String type, @PathParam("name") String name) {
-	 * Agent retVal = new Agent(); // return agent which has been run AID id = new
-	 * AID();
-	 * 
-	 * //AID id = new AID();
-	 * 
-	 * //retVal.getId().setType(this.data.getAgentTypes(id));
-	 * 
-	 * //id.setType(this.data.getAgentType(type)); Agent retVal = data.getAgent(id);
-	 * //return agent which has been run this.data.getRunningAgents().add(retVal);
-	 * //add it to list of running agents
-	 * 
-	 * 
-	 * return Response.ok(retVal, MediaType.APPLICATION_JSON).build(); }
-	 * 
 	 * @DELETE
 	 * 
 	 * @Path("/agents/running/{alias}")
@@ -651,7 +698,7 @@ public class MasterBean extends AgentCenter {
 	 * 
 	 * return Response.ok("Ok.", MediaType.APPLICATION_JSON).build(); }
 	 * 
-	 
+	 * 
 	 * @POST
 	 * 
 	 * @Consumes(MediaType.APPLICATION_JSON)
