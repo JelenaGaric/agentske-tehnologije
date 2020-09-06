@@ -2,11 +2,15 @@ package DTO;
 
 import java.util.List;
 
+import model.Performative;
+
 
 public class ACLMessageDTO {
 	private int senderIndex;
 	private int[] receiverIndexes;
 	private String content;
+	private Performative performative;
+
 	public int getSenderIndex() {
 		return senderIndex;
 	}
@@ -29,6 +33,11 @@ public class ACLMessageDTO {
 	public ACLMessageDTO() {
 		super();
 	}
-	
+	public Performative getPerformative() {
+		return performative;
+	}
+	public void setPerformative(Performative performative) {
+		this.performative = performative;
+	}
 	
 }

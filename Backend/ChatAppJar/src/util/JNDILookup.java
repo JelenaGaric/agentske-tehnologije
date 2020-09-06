@@ -13,6 +13,8 @@ public class JNDILookup {
 	public static final String JNDIPATH = "ejb:ChatAppEar/ChatAppJar/";
 	public static final String CollectorLookup = JNDIPATH + Collector.class.getSimpleName() + "!" + CollectorRemote.class.getName() + "?stateful";
 	public static final String PredictorLookup = JNDIPATH + Predictor.class.getSimpleName() + "!" + PredictorRemote.class.getName() + "?stateful";
+	public static final String PingLookup = JNDIPATH + Ping.class.getSimpleName() + "!" + PingRemote.class.getName() + "?stateful";
+	public static final String PongLookup = JNDIPATH + Pong.class.getSimpleName() + "!" + PongRemote.class.getName() + "?stateful";
 	
 	@SuppressWarnings("unchecked")
 	public static <T> T lookUp(String name, Class<T> c) {

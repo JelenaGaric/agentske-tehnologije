@@ -42,6 +42,8 @@ public class Data implements DataLocal {
 		agentType2.setName("Agent tip 2");
 		agentTypes.add(agentType2);
 
+
+
 		AID aid = new AID();
 		aid.setHost(new AgentCenter("alijas", "adresa"));
 		aid.setName("aid ime");
@@ -130,6 +132,7 @@ public class Data implements DataLocal {
 			e.printStackTrace();
 			System.out.println("Agent with given index cannot be found.");
 		}
+		System.out.println("Found agent " + agent.getName());
 		return agent;
 	}
 	@Override
@@ -148,7 +151,6 @@ public class Data implements DataLocal {
 	public AgentType getAgentType(String type) {
 		System.out.println(type);
 		for (AgentType agentType : agentTypes) {
-			System.out.println("baza- " + agentType.getName());
 			if (agentType.getName().equals(type)) {
 				return agentType;
 			}
@@ -169,14 +171,15 @@ public class Data implements DataLocal {
 
 	@Override
 	@Lock(LockType.READ)
-	public ArrayList<AID> getRunningAIDs() {
-		ArrayList<AID> aids = new ArrayList<>();
-		for (Agent agent : this.agents) {
-			aids.add(agent.getId());
+	public ArrayList<String> getRunningAIDs() {
+		ArrayList<String> aids = new ArrayList<>();
+		for (Agent agent : Data.runningAgents) {
+			aids.add(agent.getId().getName());
 		}
 		return aids;
 	}
-
+	
+	
 	@Override
 	@Lock(LockType.READ)
 	public ArrayList<Agent> getAgentsByType(AgentType agentType) {
@@ -201,7 +204,30 @@ public class Data implements DataLocal {
 
 		return retVal;
 	}
+	
+	public AgentType createAgentType(String type) {
+		
+		AgentType agentType = getAgentType(type);
 
+		if (agentType == null) {
+			System.out.println("Agent type not found, creating new one: " + type);
+			agentType = new AgentType();
+			agentType.setName(type);
+			// default module
+			if(type.equals("ping") || type.equals("pong")) {
+				//test module for ping pong
+				agentType.setModule("test-module");
+			} else {
+				//default module
+				agentType.setModule("lol-module");
+			}
+			getAgentTypes().add(agentType);
+		} else {
+			System.out.println("Found type " + agentType.getName());
+		}
+		return agentType;
+	}
+	
 	@Override
 	public void stopRunningAgent(AID aid) {
 		if (this.getRunningAIDs().contains(aid))
