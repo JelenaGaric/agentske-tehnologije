@@ -58,7 +58,7 @@ public class Ping implements PingRemote{
 			// wait for the message
 			ACLMessage msgFromPong = msg;
 			// we can put and retrieve custom user arguments using the userArgs field of the ACL message
-			Map<String, Object> args = new HashMap<String, Object>(msgFromPong.getUserArgs());
+			//Map<String, Object> args = new HashMap<String, Object>(msgFromPong.getUserArgs());
 			//args.put("pingCreatedOn", nodeName);
 //			args.put("pingWorkingOn", getNodeName);
 

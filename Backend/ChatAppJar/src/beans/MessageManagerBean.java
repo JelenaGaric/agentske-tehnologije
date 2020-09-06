@@ -54,6 +54,20 @@ public class MessageManagerBean implements MessageManager {
 	@Resource(lookup = "java:jboss/exported/jms/RemoteConnectionFactory")
 	private ConnectionFactory connectionFactory;
 
+	Session session;
+	
+	public MessageManagerBean() {
+		super();
+		try {
+			connection = connectionFactory.createConnection("guest", "guest.guest.1");
+			connection.start();
+			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		} catch (JMSException ex) {
+			throw new IllegalStateException(ex);
+		}
+		System.out.println("Created Message manager!");
+	}
+
 	@PostConstruct
 	public void postConstruction() {
 		try {
@@ -85,8 +99,8 @@ public class MessageManagerBean implements MessageManager {
 
 
 	private void postToReceiver(ACLMessage msg, int index) throws JMSException {
-		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		connection.start();
+		//Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		//connection.start();
 
 		MessageProducer producer = session.createProducer(this.defaultTopic);
 		try {

@@ -100,12 +100,12 @@ public class MessageBean {
 		Agent pingAgent = createAgent(pingAgentType, "ping");
 		Agent pongAgent = createAgent(pongAgentType, "pong");
 		
-		for(Agent a:this.data.getAgents()) {
+		/*for(Agent a:this.data.getAgents()) {
 			System.out.println("agent: " + a.getId().getName());
 		}
 		for(Agent a:this.data.getRunningAgents()) {
 			System.out.println("running agent: " + a.getId().getName());
-		}
+		}*/
 		
 		List<AID> receivers = new ArrayList<>();
 		receivers.add(pongAgent.getId());
@@ -188,6 +188,16 @@ public class MessageBean {
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 	}
 
+	@POST
+	@Path("/sendTestMsg")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response postMsg(ACLMessage aclMessage) {
+		sendTestMsg(aclMessage);
+		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
+		
+	}
+	
 	public void sendTestMsg(ACLMessage aclMessage) {
 		try {
 			for (int i = 0; i < aclMessage.getRecievers().size(); i++) {

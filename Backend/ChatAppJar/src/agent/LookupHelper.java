@@ -27,8 +27,6 @@ public class LookupHelper {
 				System.out.println("Agent with given aid has not been started - " + aid.getName());
 			} else {
 				System.out.println("Agent runs " + aid.getName());
-
-				System.out.println("agent type module " + aid.getType().getModule());
 				if(aid.getType().getModule().equals("test-module")) {
 					if(aid.getType().getName().equals("ping")) {
 						agent = JNDILookup.lookUp(JNDILookup.PingLookup, PingRemote.class);
@@ -39,14 +37,12 @@ public class LookupHelper {
 					
 					if(agent != null) {
 						agent.setId(aid);
-						
-						System.out.println("Looked up for predictor agent.");
+						System.out.println("Looked up for test agent.");
 					} 
 					else {
 						System.out.println("Error. Agent is null");
 					}
 					
-					System.out.println("Started test-agent.");
 				} else if(aid.getType().getModule().equals("lol-module")) {
 					
 					if(aid.getType().getName().equals("collector")) {

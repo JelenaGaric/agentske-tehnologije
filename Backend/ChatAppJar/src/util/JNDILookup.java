@@ -5,7 +5,9 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import agent.*;
+import beans.MessageManagerBean;
 import model.AgentCenter;
+import model.MessageManager;
 
 
 public class JNDILookup {
