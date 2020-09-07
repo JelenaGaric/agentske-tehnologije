@@ -53,12 +53,13 @@ public class MessageManagerBean implements MessageManager {
 
 	@Resource(lookup = "java:jboss/exported/jms/RemoteConnectionFactory")
 	private ConnectionFactory connectionFactory;
-
+	//NE INSTANCIRA CONNECTION FACTORY
 	Session session;
 	
 	public MessageManagerBean() {
 		super();
 		try {
+			//OVDJE NULL POINTER
 			connection = connectionFactory.createConnection("guest", "guest.guest.1");
 			connection.start();
 			session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);

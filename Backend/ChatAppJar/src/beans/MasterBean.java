@@ -457,34 +457,4 @@ public class MasterBean extends AgentCenter {
 	 * MediaType.APPLICATION_JSON).build(); }
 	 */
 
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("/predict")
-	public Response predictResult(predictDTO predictDTO) {
-
-		try {
-			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			connection.start();
-			MessageProducer producer = session.createProducer(this.defaultTopic);
-			Message message = session.createTextMessage();
-			ObjectMapper mapper = new ObjectMapper();
-			String predictDTOJSON = "";
-			try {
-				predictDTOJSON = mapper.writeValueAsString(predictDTO);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			((TextMessage) message).setText(predictDTOJSON);
-			producer.send(message);
-			producer.close();
-			connection.close();
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
-
-		PredictResultDTO retVal = new PredictResultDTO();
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	}
 }

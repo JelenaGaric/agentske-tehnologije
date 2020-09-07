@@ -51,6 +51,7 @@ public class Pong implements PongRemote {
 	@Override
 	public void handleMessage(ACLMessage msg) {
 		if(msg.getPerformative() == Performative.request) {
+			counter++;
 			ACLMessage reply = new ACLMessage();
 			reply.setPerformative(Performative.inform);
 			reply.setContent("Pong returning a message... Counter: " + counter);
@@ -58,13 +59,13 @@ public class Pong implements PongRemote {
 			ArrayList<AID> receivers = new ArrayList<AID>();
 			receivers.add(msg.getSender());
 			reply.setRecievers(receivers);
-			counter++;
 //			reply.getUserArgs().put("pongCreatedOn", nodeName);
 //			reply.getUserArgs().put("pongWorkingOn", getNodeName());
 			//reply.getUserArgs().put("pongCounter", ++counter);
 			//messageManager.sendMessage(reply);
+			
 			ResteasyClient client = new ResteasyClientBuilder().build();
-			ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages/sendTestMsg");
+			ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages/acl");
 			Response response = target.request().post(Entity.entity(reply, "application/json"));
 			
 			client.close();

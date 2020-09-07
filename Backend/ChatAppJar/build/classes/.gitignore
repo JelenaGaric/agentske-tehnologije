@@ -1,4 +1,6 @@
-/agent/
-/beans/
-/model/
 /util/
+/beans/
+/agent/
+/model/
+/data/
+/config/

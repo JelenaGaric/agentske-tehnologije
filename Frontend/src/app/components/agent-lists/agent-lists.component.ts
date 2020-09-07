@@ -32,9 +32,10 @@ export class AgentListsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
     this.service.getAgentType().subscribe(data => {
       this.agentTypes = data;
-
+      console.log(data)
       this.service.getAgents().subscribe(data1 => {
         this.running = data1;
       })

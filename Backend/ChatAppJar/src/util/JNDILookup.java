@@ -17,7 +17,8 @@ public class JNDILookup {
 	public static final String PredictorLookup = JNDIPATH + Predictor.class.getSimpleName() + "!" + PredictorRemote.class.getName() + "?stateful";
 	public static final String PingLookup = JNDIPATH + Ping.class.getSimpleName() + "!" + PingRemote.class.getName() + "?stateful";
 	public static final String PongLookup = JNDIPATH + Pong.class.getSimpleName() + "!" + PongRemote.class.getName() + "?stateful";
-	
+	public static final String MessageManagerLookup = JNDIPATH + MessageManagerBean.class.getSimpleName() + "!" + MessageManager.class.getName();
+
 	@SuppressWarnings("unchecked")
 	public static <T> T lookUp(String name, Class<T> c) {
 		T bean = null;
@@ -34,6 +35,7 @@ public class JNDILookup {
 		}
 		return bean;
 	}
+	
 
 //	@SuppressWarnings("unchecked")
 //	public static <T> T lookUpWithAgentCenter(String name, Class<T> c, AgentCenter remote) {

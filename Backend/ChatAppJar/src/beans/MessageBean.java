@@ -33,11 +33,15 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import DTO.ACLMessageDTO;
+import DTO.PredictResultDTO;
+import DTO.predictDTO;
 import agent.Collector;
 import agent.Ping;
 import agent.Pong;
+import agent.PongRemote;
 import agent.Predictor;
 import data.Data;
 import data.NetworkData;
@@ -46,8 +50,11 @@ import model.AID;
 import model.Agent;
 import model.AgentType;
 import model.Host;
+import model.MessageManager;
 import model.Performative;
 import model.User;
+import util.JNDILookup;
+import util.ObjectFactory;
 
 @Path("/messages")
 @LocalBean
@@ -90,81 +97,34 @@ public class MessageBean {
 		ACLMessage aclMessage = new ACLMessage();
 		aclMessage.setContent(aclMessageDTO.getContent());
 		aclMessage.setPerformative(aclMessageDTO.getPerformative());
-
 		
 		//creates new agent type if it doesn't already exist
 		AgentType pingAgentType = this.data.createAgentType("ping");
 		AgentType pongAgentType = this.data.createAgentType("pong");
 		
 		//creates new agent if it doesn't already exist
-		Agent pingAgent = createAgent(pingAgentType, "ping");
-		Agent pongAgent = createAgent(pongAgentType, "pong");
-		
-		/*for(Agent a:this.data.getAgents()) {
-			System.out.println("agent: " + a.getId().getName());
-		}
-		for(Agent a:this.data.getRunningAgents()) {
-			System.out.println("running agent: " + a.getId().getName());
-		}*/
-		
+		Agent pingAgent = this.data.createAgent(pingAgentType, "ping");
+		Agent pongAgent = this.data.createAgent(pongAgentType, "pong");
+	
 		List<AID> receivers = new ArrayList<>();
-		receivers.add(pongAgent.getId());
-		aclMessage.setSender(pingAgent.getId());
+		receivers.add(pingAgent.getId());
 		aclMessage.setRecievers(receivers);
-		
+		aclMessage.setReplyTo(pongAgent.getId());
 		this.sendTestMsg(aclMessage);
+		
+		
+		/*OVO NECE
+		MessageManager msm = JNDILookup.lookUp(JNDILookup.MessageManagerLookup, MessageManager.class);
+		msm.sendMessage(aclMessage);*/
 		
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 	}
 	
-	public Agent createAgent(AgentType agentType, String agentName) {
-		Agent agent = this.data.getAgentByName(agentName);
-		
-		if (agent == null) {
-			System.out.println("Agent with given name not found, creating new one: " + agentName);
-			switch(agentType.getName()) {
-				case "collector":
-					agent = new Collector();
-					break;
-				case "predictor":
-					agent = new Predictor();
-
-					break;
-				case "ping":
-					agent = new Ping();
-					break;
-				case "pong":
-					agent = new Pong();
-			}
-			
-			if(agent == null) {
-				System.out.println("Agent cannot be created.");
-				return agent;
-			}
-			
-			AID aid = new AID(this.networkData.getThisNode(), agentType);
-			aid.setName(agentName);
-			agent.setId(aid);
-
-			this.data.getAgents().add(agent);
-		} else {
-			System.out.println("Found agent with name " + agent.getId().getName());
-		}
-
-		if (!this.data.getRunningAgents().contains(agent))
-			this.data.getRunningAgents().add(agent);
-		else
-			System.out.println("The agent has already been run.");
-		
-		return agent;
-	}
-	
 	@POST
-	@Path("/test")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response testMsg(ACLMessageDTO aclMessageDTO) {
-		System.out.println("In test msg....");
+	public Response postMsg(ACLMessageDTO aclMessageDTO) {
+		System.out.println("In post msg....");
 		ACLMessage aclMessage = new ACLMessage();
 		aclMessage.setContent(aclMessageDTO.getContent());
 		
@@ -188,8 +148,57 @@ public class MessageBean {
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 	}
 
+
 	@POST
-	@Path("/sendTestMsg")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/predict")
+	public Response predictResult(predictDTO predictDTO) {
+
+		ObjectMapper mapper = new ObjectMapper();
+		String predictDTOJSON = "";
+		try {
+			predictDTOJSON = mapper.writeValueAsString(predictDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		ACLMessageDTO aclMessageDTO = new ACLMessageDTO();
+		aclMessageDTO.setContent(predictDTOJSON);
+		aclMessageDTO.setPerformative(Performative.request);
+
+		AgentType collectorAgentType = this.data.createAgentType("collector");
+		Agent collector = this.data.createAgent(collectorAgentType, "collector");
+
+		AgentType predictorAgentType = this.data.createAgentType("predictor");
+		Agent predictor = this.data.createAgent(predictorAgentType, "predictor");
+
+//		int predictorIndex;
+//		int collectorIndex;
+//		for(int i = 0; i < this.data.getRunningAgents().size(); i++) {
+//			if(this.data.getAIDByIndex(i).getName().equals("predictor")) {
+//				predictorIndex = i;
+//			}
+//			if(this.data.getAIDByIndex(i).getName().equals("collector")) {
+//				collectorIndex = i;
+//			}
+//		}
+//		aclMessageDTO.setSenderIndex(collectorIndex);
+//		int[] receiverIndexes = [];
+//		receiverIndexes[0] = predictorIndex;
+//		
+		aclMessageDTO.setReceiverIndexes(receiverIndexes);
+		ResteasyClient client = new ResteasyClientBuilder().build();
+		ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages");
+		Response response = target.request().post(Entity.entity(aclMessageDTO, "application/json"));
+		
+		client.close();
+		
+		PredictResultDTO retVal = new PredictResultDTO();
+		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+	}
+	
+	@POST
+	@Path("/acl")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response postMsg(ACLMessage aclMessage) {
@@ -243,33 +252,33 @@ public class MessageBean {
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
 	
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response sendACLMessage(ACLMessage aclMessage) {
-
-		ACLMessage aclMess = new ACLMessage();
-
-		aclMess.setSender(aclMessage.getSender());
-		aclMess.setRecievers(aclMessage.getRecievers());
-		aclMess.setPerformative(aclMessage.getPerformative());
-		aclMess.setContent(aclMessage.getContent());
-		aclMess.setContentObj(aclMessage.getContentObj());
-		aclMess.setConversationId(aclMessage.getConversationId());
-		aclMess.setEncoding(aclMessage.getEncoding());
-		aclMess.setInReplyTo(aclMessage.getInReplyTo());
-		aclMess.setLanguage(aclMessage.getLanguage());
-		aclMess.setOntology(aclMessage.getOntology());
-		aclMess.setProtocol(aclMessage.getProtocol());
-		aclMess.setReplyBy(aclMessage.getReplyBy());
-		aclMess.setReplyTo(aclMessage.getReplyTo());
-		aclMess.setReplyWith(aclMessage.getReplyWith());
-		aclMess.setUserArgs(aclMessage.getUserArgs());
-
-		this.data.getAclMessages().add(aclMess);
-
-		return Response.ok("Ok.", MediaType.APPLICATION_JSON).build();
-	}
+//	@POST
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	@Produces(MediaType.APPLICATION_JSON)
+//	public Response sendACLMessage(ACLMessage aclMessage) {
+//
+//		ACLMessage aclMess = new ACLMessage();
+//
+//		aclMess.setSender(aclMessage.getSender());
+//		aclMess.setRecievers(aclMessage.getRecievers());
+//		aclMess.setPerformative(aclMessage.getPerformative());
+//		aclMess.setContent(aclMessage.getContent());
+//		aclMess.setContentObj(aclMessage.getContentObj());
+//		aclMess.setConversationId(aclMessage.getConversationId());
+//		aclMess.setEncoding(aclMessage.getEncoding());
+//		aclMess.setInReplyTo(aclMessage.getInReplyTo());
+//		aclMess.setLanguage(aclMessage.getLanguage());
+//		aclMess.setOntology(aclMessage.getOntology());
+//		aclMess.setProtocol(aclMessage.getProtocol());
+//		aclMess.setReplyBy(aclMessage.getReplyBy());
+//		aclMess.setReplyTo(aclMessage.getReplyTo());
+//		aclMess.setReplyWith(aclMessage.getReplyWith());
+//		aclMess.setUserArgs(aclMessage.getUserArgs());
+//
+//		this.data.getAclMessages().add(aclMess);
+//
+//		return Response.ok("Ok.", MediaType.APPLICATION_JSON).build();
+//	}
 	
 	/*
 	@EJB

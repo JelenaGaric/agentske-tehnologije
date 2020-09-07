@@ -62,38 +62,25 @@ public class AgentBean {
 	@Path("/running")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getRunningAgents() {
-		System.out.println("***Running agents:---" + this.data.getRunningAgents());
-		ArrayList<Agent> retVal = new ArrayList<>(); // return list of agents which have been run
+		ArrayList<Agent> retVal = new ArrayList<>(); 
 
 		for (Agent agent : data.getRunningAgents()) {
 			retVal.add(agent);
 		}
 
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-
-		// return list of agents which have been run
-		// return Response.ok(this.getRunningAgents(),
-		// MediaType.APPLICATION_JSON).build();
 	}
 
 	@PUT
 	@Path("/running/{type}/{name}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
+		//creates new agent type if it doesn't already exist
+		AgentType agentType = this.data.createAgentType(type);
+
+		/*Agent agent = this.data.getAgentByName(name);
+
 		AgentType agentType = this.data.getAgentType(type);
-
-		if (agentType == null) {
-			System.out.println("Type not found, creating new one...");
-			agentType = new AgentType();
-			agentType.setName(type);
-			// default module
-			agentType.setModule("lol-module");
-			this.data.getAgentTypes().add(agentType);
-		} else {
-			System.out.println("Found type " + agentType.getName());
-		}
-
-		Agent agent = this.data.getAgentByName(name);
 
 		if (agent == null) {
 			System.out.println("Agent with given name not found, creating new one...");
@@ -106,38 +93,52 @@ public class AgentBean {
 				return Response.status(Response.Status.BAD_REQUEST).build();
 			}
 
-			//izmijenjeno u this node umjesto master
 			AID aid = new AID(this.networkData.getThisNode(), agentType);
 			aid.setName(name);
 			agent.setId(aid);
 
 			this.data.getAgents().add(agent);
 		} else {
+			if(agent.getId().getType().getName() != type) {
+				System.out.println("Agent already exists, but it's a different type.");
+				return Response.status(Response.Status.BAD_REQUEST).entity("Agent already exists, but it's a different type.").build();
+			}
 			System.out.println("Found agent with name " + agent.getId().getName());
 		}
 
 		if (!this.data.getRunningAgents().contains(agent))
 			this.data.getRunningAgents().add(agent);
 		else
-			System.out.println("The agent has already been run.");
+			System.out.println("The agent has already been run.");*/
+		
+		//creates new agent if it doesn't already exist
+		Agent agent = this.data.createAgent(agentType, name);
+		
+		if(agent == null)
+			return Response.status(Response.Status.BAD_REQUEST).entity("Agent can't be created (unknown type).").build();
 
+		if(!agent.getId().getType().getName().equals(agentType.getName())) 
+			return Response.status(Response.Status.BAD_REQUEST).entity("Agent already exists, but it's a different type.").build();
+		
 		return Response.ok(agent, MediaType.APPLICATION_JSON).build();
 	}
 
 	@DELETE
-	@Path("/running/{alias}")
+	@Path("/running/{aid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response stopAgent(@PathParam("aid") String aid) {
-		/*
-		 * Agent retVal = new Agent(); String agentId = retVal.getId().toString();
-		 * 
-		 * if (agentId == aid) { this.data.getRunningAgents().remove(retVal);
-		 * 
-		 * }
-		 * 
-		 * return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-		 */
-		return Response.ok().build();
+		Agent agent = this.data.getAgentByName(aid);
+		
+		if(agent == null) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("Agent with given name doesn't exist.").build();
+		}
+		
+		AID agentAID = agent.getId();
+		
+		if(this.data.stopRunningAgent(agentAID))
+			return Response.ok().build();
+		
+		return Response.status(Response.Status.BAD_REQUEST).entity("Agent has already been stopped.").build();
 	}
 
 	

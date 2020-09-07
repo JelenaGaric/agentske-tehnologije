@@ -6,11 +6,16 @@ import java.util.List;
 import javax.ejb.AccessTimeout;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
+import agent.Collector;
+import agent.Ping;
+import agent.Pong;
+import agent.Predictor;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
@@ -28,6 +33,9 @@ public class Data implements DataLocal {
 	private static List<AgentType> agentTypes = new ArrayList<AgentType>();
 	private List<ACLMessage> aclMessages = new ArrayList<ACLMessage>();
 
+	@EJB
+	NetworkData networkData; 
+	
 	public Data() {
 	}
 
@@ -42,18 +50,53 @@ public class Data implements DataLocal {
 		agentType2.setName("Agent tip 2");
 		agentTypes.add(agentType2);
 
-
-
-		AID aid = new AID();
-		aid.setHost(new AgentCenter("alijas", "adresa"));
-		aid.setName("aid ime");
-		aid.setType(agentType);
-		// Agent agent = new Agent();
-		// agent.setId(aid);
-
-		// runningAgents.add(agent);
-
 	}
+	
+	public Agent createAgent(AgentType agentType, String agentName) {
+		Agent agent = getAgentByName(agentName);
+		
+		if (agent == null) {
+			System.out.println("Agent with given name not found, creating new one: " + agentName);
+			switch(agentType.getName()) {
+				case "collector":
+					agent = new Collector();
+					break;
+				case "predictor":
+					agent = new Predictor();
+
+					break;
+				case "ping":
+					agent = new Ping();
+					break;
+				case "pong":
+					agent = new Pong();
+			}
+			
+			if(agent == null) {
+				System.out.println("Agent can't be created (unknown type).");
+				return agent;
+			}
+			
+			AID aid = new AID(this.networkData.getThisNode(), agentType);
+			aid.setName(agentName);
+			agent.setId(aid);
+
+			agents.add(agent);
+		} else {
+			if(agent.getId().getType().getName() != agentType.getName()) {
+				System.out.println("Agent already exists, but it's a different type.");
+			}
+			System.out.println("Found agent with name " + agent.getId().getName());
+		}
+
+		if (!getRunningAgents().contains(agent))
+			runningAgents.add(agent);
+		else
+			System.out.println("The agent has already been run.");
+		
+		return agent;
+	}
+	
 
 	@Lock(LockType.READ)
 	public List<Agent> getAgents() {
@@ -221,7 +264,7 @@ public class Data implements DataLocal {
 				//default module
 				agentType.setModule("lol-module");
 			}
-			getAgentTypes().add(agentType);
+			agentTypes.add(agentType);
 		} else {
 			System.out.println("Found type " + agentType.getName());
 		}
@@ -229,14 +272,17 @@ public class Data implements DataLocal {
 	}
 	
 	@Override
-	public void stopRunningAgent(AID aid) {
-		if (this.getRunningAIDs().contains(aid))
-			this.runningAgents.remove(getAgent(aid));
+	public boolean stopRunningAgent(AID aid) {
+		if (this.getRunningAIDs().contains(aid.getName())) {
+			Data.runningAgents.remove(getAgent(aid));
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public void stopRunningAgents() {
-		this.runningAgents.clear();
+		Data.runningAgents.clear();
 	}
 
 }

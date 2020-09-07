@@ -21,12 +21,12 @@ public class LookupHelper {
 		Agent agent = null;
 
 		if(this.data.agentTypeExists(aid.getType().getName())) {
-			System.out.println("AgentType exists " + aid.getName());
+			System.out.println("AgentType exists - " + aid.getName());
 
 			if(!this.data.getRunningAIDs().contains(aid.getName())) {
 				System.out.println("Agent with given aid has not been started - " + aid.getName());
 			} else {
-				System.out.println("Agent runs " + aid.getName());
+				System.out.println("Agent is running - " + aid.getName());
 				if(aid.getType().getModule().equals("test-module")) {
 					if(aid.getType().getName().equals("ping")) {
 						agent = JNDILookup.lookUp(JNDILookup.PingLookup, PingRemote.class);

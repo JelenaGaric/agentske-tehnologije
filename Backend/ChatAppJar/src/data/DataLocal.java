@@ -44,7 +44,7 @@ public interface DataLocal {
 	
 	ArrayList<Agent> getRunningAgentsByType(AgentType agentType);
 	
-	void stopRunningAgent(AID aid);
+	boolean stopRunningAgent(AID aid);
 	
 	void stopRunningAgents();
 	
