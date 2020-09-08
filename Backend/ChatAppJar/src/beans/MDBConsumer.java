@@ -42,7 +42,7 @@ public class MDBConsumer implements MessageListener {
 
 			if(agent != null) {
 				agent.handleMessage(aclMessage);
-			}
+			} 
 			
 		} catch(JMSException ex) {
 			System.out.println("MDB consumer cannot process message.");
