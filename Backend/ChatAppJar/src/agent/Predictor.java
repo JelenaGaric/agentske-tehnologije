@@ -34,7 +34,7 @@ public class Predictor implements PredictorRemote{
 	@Override
 	public void handleMessage(ACLMessage message) {
 		System.out.println("Agent " + id.getName() + " received message " + message.getContent() );
-		
+		//POZIV PAJTON SKRIPTE OVDJE
 	}
 
 }

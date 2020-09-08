@@ -68,9 +68,6 @@ public class Ping implements PingRemote{
 			
 			client.close();
 			
-			// use the message manager to publish the request
-
-			//messageManager().sendMessage(msgToPong);
 		} else if (msg.getPerformative() == Performative.inform) {
 			// wait for the message
 			ACLMessage msgFromPong = msg;

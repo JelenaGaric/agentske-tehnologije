@@ -110,7 +110,7 @@ public class MessageBean {
 		receivers.add(pingAgent.getId());
 		aclMessage.setRecievers(receivers);
 		aclMessage.setReplyTo(pongAgent.getId());
-		this.sendTestMsg(aclMessage);
+		this.sendMsg(aclMessage);
 		
 		
 		/*OVO NECE
@@ -123,6 +123,7 @@ public class MessageBean {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("/test")
 	public Response postMsg(ACLMessageDTO aclMessageDTO) {
 		System.out.println("In post msg....");
 		ACLMessage aclMessage = new ACLMessage();
@@ -143,7 +144,7 @@ public class MessageBean {
 		aclMessage.setSender(sender);
 		aclMessage.setRecievers(receivers);
 
-		this.sendTestMsg(aclMessage);
+		this.sendMsg(aclMessage);
 		
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 	}
@@ -152,7 +153,6 @@ public class MessageBean {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Path("/predict")
 	public Response predictResult(predictDTO predictDTO) {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -162,36 +162,27 @@ public class MessageBean {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		ACLMessageDTO aclMessageDTO = new ACLMessageDTO();
-		aclMessageDTO.setContent(predictDTOJSON);
-		aclMessageDTO.setPerformative(Performative.request);
-
+		if(predictDTOJSON.equals("")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("Empty fields.").build();
+		}
+		
+		//ZASAD METODA AUTOMATSKI KREIRA TIPOVE I AGENTE (ILI POKRECE), INACE KORISNIK TO PRVO TREBA DA URADI
 		AgentType collectorAgentType = this.data.createAgentType("collector");
 		Agent collector = this.data.createAgent(collectorAgentType, "collector");
 
 		AgentType predictorAgentType = this.data.createAgentType("predictor");
 		Agent predictor = this.data.createAgent(predictorAgentType, "predictor");
-
-//		int predictorIndex;
-//		int collectorIndex;
-//		for(int i = 0; i < this.data.getRunningAgents().size(); i++) {
-//			if(this.data.getAIDByIndex(i).getName().equals("predictor")) {
-//				predictorIndex = i;
-//			}
-//			if(this.data.getAIDByIndex(i).getName().equals("collector")) {
-//				collectorIndex = i;
-//			}
-//		}
-//		aclMessageDTO.setSenderIndex(collectorIndex);
-//		int[] receiverIndexes = [];
-//		receiverIndexes[0] = predictorIndex;
-//		
-		aclMessageDTO.setReceiverIndexes(receiverIndexes);
-		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages");
-		Response response = target.request().post(Entity.entity(aclMessageDTO, "application/json"));
 		
-		client.close();
+		ACLMessage aclMessage = new ACLMessage();
+		aclMessage.setContent(predictDTOJSON);
+		aclMessage.setPerformative(Performative.request);
+		aclMessage.setReplyTo(predictor.getId());
+		
+		ArrayList<AID> receivers = new ArrayList<>();
+		receivers.add(collector.getId());
+		aclMessage.setRecievers(receivers);
+		
+		this.sendMsg(aclMessage);
 		
 		PredictResultDTO retVal = new PredictResultDTO();
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
@@ -202,12 +193,12 @@ public class MessageBean {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response postMsg(ACLMessage aclMessage) {
-		sendTestMsg(aclMessage);
+		sendMsg(aclMessage);
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 		
 	}
 	
-	public void sendTestMsg(ACLMessage aclMessage) {
+	public void sendMsg(ACLMessage aclMessage) {
 		try {
 			for (int i = 0; i < aclMessage.getRecievers().size(); i++) {
 				if (aclMessage.getRecievers().get(i) == null) {

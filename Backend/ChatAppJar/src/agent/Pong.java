@@ -29,7 +29,6 @@ public class Pong implements PongRemote {
 	public static int counter;
 	
 	public Pong() {
-		counter = 0;
 	}
 
 	@Override
@@ -43,10 +42,12 @@ public class Pong implements PongRemote {
 		System.out.println("MY COUNTER - " + counter);
 	}
 	
-//	protected void onInit(String nodeName) {
-//		this.nodeName = nodeName;
-//		System.out.println("Pong created on " + nodeName);
-//	}
+	protected void onInit() {
+		
+		System.out.println("Pong created ");
+		counter = 0;
+
+	}
 
 	@Override
 	public void handleMessage(ACLMessage msg) {

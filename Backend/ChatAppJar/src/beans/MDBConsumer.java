@@ -34,7 +34,6 @@ public class MDBConsumer implements MessageListener {
 	@Override
 	public void onMessage(Message message) {
 		try {
-			System.out.println("in mdb");
 
 			ACLMessage aclMessage = (ACLMessage) ((ObjectMessage) message).getObject();
 			int i = message.getIntProperty("AIDIndex");

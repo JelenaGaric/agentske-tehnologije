@@ -77,39 +77,6 @@ public class AgentBean {
 	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
 		//creates new agent type if it doesn't already exist
 		AgentType agentType = this.data.createAgentType(type);
-
-		/*Agent agent = this.data.getAgentByName(name);
-
-		AgentType agentType = this.data.getAgentType(type);
-
-		if (agent == null) {
-			System.out.println("Agent with given name not found, creating new one...");
-			if (agentType.getName().equals("collector")) {
-				agent = new Collector();
-			} else if (agentType.getName().equals("predictor")) {
-				agent = new Predictor();
-			} else {
-				System.out.println("Agent cannot be created.");
-				return Response.status(Response.Status.BAD_REQUEST).build();
-			}
-
-			AID aid = new AID(this.networkData.getThisNode(), agentType);
-			aid.setName(name);
-			agent.setId(aid);
-
-			this.data.getAgents().add(agent);
-		} else {
-			if(agent.getId().getType().getName() != type) {
-				System.out.println("Agent already exists, but it's a different type.");
-				return Response.status(Response.Status.BAD_REQUEST).entity("Agent already exists, but it's a different type.").build();
-			}
-			System.out.println("Found agent with name " + agent.getId().getName());
-		}
-
-		if (!this.data.getRunningAgents().contains(agent))
-			this.data.getRunningAgents().add(agent);
-		else
-			System.out.println("The agent has already been run.");*/
 		
 		//creates new agent if it doesn't already exist
 		Agent agent = this.data.createAgent(agentType, name);
