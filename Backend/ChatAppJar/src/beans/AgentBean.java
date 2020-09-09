@@ -70,6 +70,18 @@ public class AgentBean {
 
 		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
 	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAllAgents() {
+		ArrayList<Agent> retVal = new ArrayList<>(); 
+
+		for (Agent agent : data.getAgents()) {
+			retVal.add(agent);
+		}
+
+		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+	}
 
 	@PUT
 	@Path("/running/{type}/{name}")

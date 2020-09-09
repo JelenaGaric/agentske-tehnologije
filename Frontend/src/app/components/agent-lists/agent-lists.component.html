@@ -4,20 +4,21 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header card-header-danger">
-                        <h4 class="card-title ">Agents</h4>
+                        <h4 class="card-title ">Running Agents</h4>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table">
                                 <thead class=" text-primary">
-                                    <th>Agent
+                                    <th>Running Agent
                                     </th>
                                 </thead>
                                 <tbody>
                                     <tr *ngFor="let agent of running" [class.selected]="agent === selectedAgent"
-                                        (click)="onSelectAgent(agent)">
+                                        >
                                         <td>
-                                            <span class="badge">{{agent}}</span>
+                                            <span class="badge" (click)="onSelectAgent(agent)">{{agent.id.name}}</span>
+                                            <button type="button" class="btn btn-danger btn-sm" style="float: right; color: aliceblue;" (click)="stopAgent(agent.id.name)"> Stop agent</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -30,7 +31,7 @@
     </div>
 </div>
 
-<div *ngIf="selectedAgent">
+<div *ngIf="selectedAgent.id">
     <div class="content-container">
         <div class="container-fluid">
             <div class="main-content">
@@ -45,7 +46,14 @@
                                     <form>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <p> Agent : {{selectedAgent.aid}} </p>
+                                                <p> Agent aid name: {{selectedAgent.id.name}} </p>
+                                                <p> Agent aid host address: {{selectedAgent.id.host.address}} </p>
+                                                <p> Agent aid host alias: {{selectedAgent.id.host.alias}} </p>
+
+
+                                               
+
+
                                             </div>
                                         </div>
                                     </form>
@@ -119,6 +127,79 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header card-header-danger">
+                        <h4 class="card-title ">All Agents</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead class=" text-primary">
+                                    <th>Agent
+                                    </th>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let a of agents" 
+                                        >
+                                        <td>
+                                            <span class="badge" >{{a.id.name}}</span>
+                                            <button *ngIf="!a.isRunning"  class="btn btn-success btn-sm" style="float: right; color: aliceblue;" (click)="startAgent(a.id.type.name, a.id.name)" >Start Agent</button>
+
+                                            
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="main-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header card-header-danger">
+                        <h4 class="card-title ">Add new agent</h4>
+                    </div>
+                    <div class="card-body col-md-6" >
+                        <select [(ngModel)]="newAgentType" name="category" id="category" (change)="selectNewType()">
+                            <option value="collector">Collector</option>
+                            <option value="predictor">Predictor</option>
+                            <option value="ping">Ping</option>
+                            <option value="pong">Pong</option>
+                           
+                        </select>
+                        <br>
+                        <h4 class="card-title" >Agent name</h4>
+                        <input type="text" [(ngModel)]="newAgentName" class="col-md-12">
+
+                        <br>
+                        <button class="btn btn-sm text-white"  style=" color: rgb(240, 240, 240); background-color: rgb(91, 154, 214);" (click)="startAgent(newAgentType, newAgentName)">Add Agent</button>
+ 
+
+                        
+
+                        
+                    </div>
+                <div>
+                </div>
                 </div>
             </div>
         </div>

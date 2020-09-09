@@ -1,5 +1,10 @@
 import { AID } from './AID';
 
 export class Agent {
-    aid : AID
+    id : AID
+    isRunning : boolean
+
+    constructor() {
+        this.isRunning = false;
+    }
 }
