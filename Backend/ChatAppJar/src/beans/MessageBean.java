@@ -54,7 +54,6 @@ import model.MessageManager;
 import model.Performative;
 import model.User;
 import util.JNDILookup;
-import util.ObjectFactory;
 
 @Path("/messages")
 @LocalBean

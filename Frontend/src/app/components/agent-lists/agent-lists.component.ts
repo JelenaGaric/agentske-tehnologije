@@ -3,6 +3,7 @@ import { AgentType } from 'src/app/model/agentType';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AgentListService } from 'src/app/services/agent-list.service';
 import { Agent } from  'src/app/model/agent';
+import { AID } from 'src/app/model/AID';
 
 
 @Component({
@@ -16,6 +17,8 @@ export class AgentListsComponent implements OnInit {
   agentTypes: AgentType[] = []
 
   running: Agent[] = []
+  agentAID: AID
+  aid: string
 
 
   // runningAgents: string[]= ["agent1", "agent2"]
@@ -25,10 +28,12 @@ export class AgentListsComponent implements OnInit {
   selectedAgent :Agent
   selectedType : AgentType
 
+
   constructor(private router: Router, private route: ActivatedRoute, private service: AgentListService) { 
     this.agentType = new AgentType();
     this.selectedType = new AgentType();
     this.selectedAgent = new Agent();
+    this.agentAID = new AID();
   }
 
   ngOnInit(): void {
@@ -38,6 +43,8 @@ export class AgentListsComponent implements OnInit {
       console.log(data)
       this.service.getAgents().subscribe(data1 => {
         this.running = data1;
+        console.log(data1)
+        ;
       })
     });
     

@@ -21,11 +21,11 @@ export class AgentListService {
 
       public getAgentType(): Observable<AgentType[]> {
         //stavila sam svoju sad za sad da vidim radi li
-        return this.http.get<AgentType[]>('192.168.0.108:8080/ChatAppWar/master/agents/classes', this.httpOptions);
+        return this.http.get<AgentType[]>('http://localhost:8080/ChatAppWar/rest/agents/classes');
       }
 
       public getAgents(): Observable<Agent[]> {
-        return this.http.get<Agent[]>('192.168.0.108:8080/ChatAppWar/master/agents/running', this.httpOptions);
+        return this.http.get<Agent[]>('http://localhost:8080/ChatAppWar/rest/agents/classes');
       }
 
 }

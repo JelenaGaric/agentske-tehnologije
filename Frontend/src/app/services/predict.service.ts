@@ -7,15 +7,23 @@ import { predictDTO } from '../model/predictDTO';
 })
 export class PredictService {
 
-  httpOptions = {
+  /*httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'
     })
-  };
+  };*/
+
+  httpOptions = {
+    headers: new HttpHeaders()
+    .set('content-type', 'application/json')
+  .set('Access-Control-Allow-Origin', '*'),
+  }
+
   constructor(private http: HttpClient) { }
 
   predict(info: predictDTO) {
-    this.http.post<predictDTO>("http://localhost:8080/ChatAppWar/master/predict", info, this.httpOptions)
+    return this.http.post<predictDTO>('http://localhost:8080/ChatAppWar/rest/messages', info)
+    // alert("CAO");
   }
 
 
