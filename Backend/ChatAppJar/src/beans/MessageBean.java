@@ -2,6 +2,7 @@ package beans;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
@@ -33,6 +34,179 @@ import model.User;
 @LocalBean // sad restendpointi ne moraju biti u remote interfejsu
 //prima rest i prepakuje poruku u jms poruku 1 korak
 public class MessageBean {
+	
+	@EJB
+	Data data; // data for agents and agent types
+	
+	@EJB
+	NetworkData networkData; 
+	
+	@Resource(lookup = "java:jboss/exported/jms/topic/publicTopic")
+	private Topic defaultTopic;
+	
+	private Connection connection;
+
+	@Resource(lookup = "java:jboss/exported/jms/RemoteConnectionFactory")
+	private ConnectionFactory connectionFactory;
+
+	@PostConstruct
+	public void postConstruction() {
+		try {
+			connection = connectionFactory.createConnection("guest", "guest.guest.1");
+		} catch (JMSException ex) {
+			throw new IllegalStateException(ex);
+		}
+		System.out.println("Created Message bean!");
+	}
+
+	@POST
+	@Path("/pingpong")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response testPingPong(ACLMessageDTO aclMessageDTO) {
+		System.out.println("In ping pong test...");
+
+		ACLMessage aclMessage = new ACLMessage();
+		aclMessage.setContent(aclMessageDTO.getContent());
+		aclMessage.setPerformative(aclMessageDTO.getPerformative());
+		
+		//creates new agent type if it doesn't already exist
+		AgentType pingAgentType = this.data.createAgentType("ping");
+		AgentType pongAgentType = this.data.createAgentType("pong");
+		
+		//creates new agent if it doesn't already exist
+		Agent pingAgent = this.data.createAgent(pingAgentType, "ping");
+		Agent pongAgent = this.data.createAgent(pongAgentType, "pong");
+	
+		List<AID> receivers = new ArrayList<>();
+		receivers.add(pingAgent.getId());
+		aclMessage.setRecievers(receivers);
+		aclMessage.setReplyTo(pongAgent.getId());
+		
+		this.sendMsg(aclMessage);
+		
+		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
+	}
+	
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("/test")
+	public Response postMsg(ACLMessageDTO aclMessageDTO) {
+		System.out.println("In post msg....");
+		ACLMessage aclMessage = new ACLMessage();
+		aclMessage.setContent(aclMessageDTO.getContent());
+		
+		AID sender = this.data.getAIDByIndex(aclMessageDTO.getSenderIndex());
+
+		List<AID> receivers = new ArrayList<>();
+		for (int receiverIndex : aclMessageDTO.getReceiverIndexes()) {
+			receivers.add(this.data.getAIDByIndex(receiverIndex));
+		}
+
+		if (sender == null || receivers.size() == 0) {
+			System.out.println("You need to set a sender and receivers.");
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+
+		aclMessage.setSender(sender);
+		aclMessage.setRecievers(receivers);
+
+		this.sendMsg(aclMessage);
+		
+		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
+	}
+
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response predictResult(predictDTO predictDTO) {
+		ObjectMapper mapper = new ObjectMapper();
+		String predictDTOJSON = "";
+		try {
+			predictDTOJSON = mapper.writeValueAsString(predictDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if(predictDTOJSON.equals("")) {
+			return Response.status(Response.Status.BAD_REQUEST).entity("Empty fields.").build();
+		}
+		
+		//ZASAD METODA AUTOMATSKI KREIRA TIPOVE I AGENTE (ILI POKRECE), INACE KORISNIK TO PRVO TREBA DA URADI
+		AgentType collectorAgentType = this.data.createAgentType("collector");
+		Agent collector = this.data.createAgent(collectorAgentType, "collector");
+
+		AgentType predictorAgentType = this.data.createAgentType("predictor");
+		Agent predictor = this.data.createAgent(predictorAgentType, "predictor");
+		
+		ACLMessage aclMessage = new ACLMessage();
+		aclMessage.setContent(predictDTOJSON);
+		aclMessage.setPerformative(Performative.request);
+		aclMessage.setReplyTo(predictor.getId());
+		
+		ArrayList<AID> receivers = new ArrayList<>();
+		receivers.add(collector.getId());
+		aclMessage.setRecievers(receivers);
+		
+		this.sendMsg(aclMessage);
+		
+		
+		PredictResultDTO retVal = new PredictResultDTO();
+		
+		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+	}
+	
+	@POST
+	@Path("/acl")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response postMsg(ACLMessage aclMessage) {
+		sendMsg(aclMessage);
+		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
+		
+	}
+	
+	public void sendMsg(ACLMessage aclMessage) {
+		try {
+			for (int i = 0; i < aclMessage.getRecievers().size(); i++) {
+				if (aclMessage.getRecievers().get(i) == null) {
+					throw new IllegalArgumentException("AID cannot be null.");
+				}
+				postToReceiver(aclMessage, i);
+			}
+
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void postToReceiver(ACLMessage msg, int index) throws JMSException {
+		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		connection.start();
+
+		MessageProducer producer = session.createProducer(this.defaultTopic);
+		try {
+			ObjectMessage jmsMsg = session.createObjectMessage(msg);
+			jmsMsg.setIntProperty("AIDIndex", index);
+			producer.send(jmsMsg);
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getPerformatives() {
+		// return list of performatives from enum
+		ArrayList<Performative> retVal = new ArrayList<Performative>();
+
+		Performative[] performative = Performative.values();
+
+		for (Performative p : performative)
+
+			retVal.add(p);
 
 	/*
 	@EJB

@@ -1,22 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { predictDTO } from '../model/predictDTO';
+import { ACLMessageDTO } from '../model/ACLMessagDTO';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PredictService {
+export class PingPongService {
 
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'
     })
   };
+
   constructor(private http: HttpClient) { }
 
-  predict(info: predictDTO) {
-    this.http.post<predictDTO>("http://localhost:8080/ChatAppWar/rest/messages", info, this.httpOptions)
+  pingpong(acl: ACLMessageDTO) {
+    return this.http.post('http://localhost:8080/ChatAppWar/rest/messages/pingpong', acl)
   }
-
 
 }

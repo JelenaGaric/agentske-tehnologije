@@ -25,7 +25,7 @@ export class AgentListService {
       }
 
       public getAgents(): Observable<Agent[]> {
-        return this.http.get<Agent[]>('192.168.0.108:8080/ChatAppWar/master/agents/running', this.httpOptions);
+        return this.http.get<Agent[]>('http://localhost:8080/ChatAppWar/rest/agents/running', this.httpOptions);
       }
 
 }

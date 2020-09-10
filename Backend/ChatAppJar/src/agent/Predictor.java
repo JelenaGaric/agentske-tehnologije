@@ -4,6 +4,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
 
+import beans.MessageBean;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
@@ -14,7 +15,6 @@ import model.AgentType;
 @Remote(PredictorRemote.class)
 public class Predictor implements PredictorRemote{
 	private AID id;
-
 	@Override
 	public AID getId() {
 		return id;
