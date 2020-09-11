@@ -14,6 +14,7 @@ import {MatSelectModule} from '@angular/material/select';
 import {MatListModule} from '@angular/material/list';
 import { AgentListsComponent } from './components/agent-lists/agent-lists.component';
 import { CommonModule }                             from '@angular/common';
+import { WsAdapterService } from './services/ws-adapter.service';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { CommonModule }                             from '@angular/common';
     BrowserModule,
     AppRoutingModule,
     FormsModule,
+    HttpClientModule,
     ReactiveFormsModule,
     MatToolbarModule,
     MatIconModule,

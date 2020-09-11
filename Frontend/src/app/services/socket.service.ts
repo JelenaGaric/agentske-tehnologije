@@ -32,7 +32,7 @@ export class SocketService {
       next: (data: Object) => {
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(data));
-        }
+        } 
       }
     };
     return Subject.create(observer, observable);

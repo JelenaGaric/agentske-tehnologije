@@ -6,11 +6,16 @@ import java.util.List;
 import javax.ejb.AccessTimeout;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
+import agent.Collector;
+import agent.Ping;
+import agent.Pong;
+import agent.Predictor;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
@@ -28,6 +33,9 @@ public class Data implements DataLocal {
 	private static List<AgentType> agentTypes = new ArrayList<AgentType>();
 	private List<ACLMessage> aclMessages = new ArrayList<ACLMessage>();
 
+	@EJB
+	NetworkData networkData; 
+	
 	public Data() {
 	}
 
@@ -42,16 +50,53 @@ public class Data implements DataLocal {
 		agentType2.setName("Agent tip 2");
 		agentTypes.add(agentType2);
 
-		AID aid = new AID();
-		aid.setHost(new AgentCenter("alijas", "adresa"));
-		aid.setName("aid ime");
-		aid.setType(agentType);
-		// Agent agent = new Agent();
-		// agent.setId(aid);
-
-		// runningAgents.add(agent);
-
 	}
+	
+	public Agent createAgent(AgentType agentType, String agentName) {
+		Agent agent = getAgentByName(agentName);
+		
+		if (agent == null) {
+			System.out.println("Agent with given name not found, creating new one: " + agentName);
+			switch(agentType.getName()) {
+				case "collector":
+					agent = new Collector();
+					break;
+				case "predictor":
+					agent = new Predictor();
+
+					break;
+				case "ping":
+					agent = new Ping();
+					break;
+				case "pong":
+					agent = new Pong();
+			}
+			
+			if(agent == null) {
+				System.out.println("Agent can't be created (unknown type).");
+				return agent;
+			}
+			
+			AID aid = new AID(this.networkData.getThisNode(), agentType);
+			aid.setName(agentName);
+			agent.setId(aid);
+
+			agents.add(agent);
+		} else {
+			if(agent.getId().getType().getName() != agentType.getName()) {
+				System.out.println("Agent already exists, but it's a different type.");
+			}
+			System.out.println("Found agent with name " + agent.getId().getName());
+		}
+
+		if (!getRunningAgents().contains(agent))
+			runningAgents.add(agent);
+		else
+			System.out.println("The agent has already been run.");
+		
+		return agent;
+	}
+	
 
 	@Lock(LockType.READ)
 	public List<Agent> getAgents() {
@@ -130,6 +175,7 @@ public class Data implements DataLocal {
 			e.printStackTrace();
 			System.out.println("Agent with given index cannot be found.");
 		}
+		System.out.println("Found agent " + agent.getName());
 		return agent;
 	}
 	@Override
@@ -148,7 +194,6 @@ public class Data implements DataLocal {
 	public AgentType getAgentType(String type) {
 		System.out.println(type);
 		for (AgentType agentType : agentTypes) {
-			System.out.println("baza- " + agentType.getName());
 			if (agentType.getName().equals(type)) {
 				return agentType;
 			}
@@ -169,14 +214,15 @@ public class Data implements DataLocal {
 
 	@Override
 	@Lock(LockType.READ)
-	public ArrayList<AID> getRunningAIDs() {
-		ArrayList<AID> aids = new ArrayList<>();
-		for (Agent agent : this.agents) {
-			aids.add(agent.getId());
+	public ArrayList<String> getRunningAIDs() {
+		ArrayList<String> aids = new ArrayList<>();
+		for (Agent agent : Data.runningAgents) {
+			aids.add(agent.getId().getName());
 		}
 		return aids;
 	}
-
+	
+	
 	@Override
 	@Lock(LockType.READ)
 	public ArrayList<Agent> getAgentsByType(AgentType agentType) {
@@ -201,16 +247,42 @@ public class Data implements DataLocal {
 
 		return retVal;
 	}
+	
+	public AgentType createAgentType(String type) {
+		
+		AgentType agentType = getAgentType(type);
 
+		if (agentType == null) {
+			System.out.println("Agent type not found, creating new one: " + type);
+			agentType = new AgentType();
+			agentType.setName(type);
+			// default module
+			if(type.equals("ping") || type.equals("pong")) {
+				//test module for ping pong
+				agentType.setModule("test-module");
+			} else {
+				//default module
+				agentType.setModule("lol-module");
+			}
+			agentTypes.add(agentType);
+		} else {
+			System.out.println("Found type " + agentType.getName());
+		}
+		return agentType;
+	}
+	
 	@Override
-	public void stopRunningAgent(AID aid) {
-		if (this.getRunningAIDs().contains(aid))
-			this.runningAgents.remove(getAgent(aid));
+	public boolean stopRunningAgent(AID aid) {
+		if (this.getRunningAIDs().contains(aid.getName())) {
+			Data.runningAgents.remove(getAgent(aid));
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public void stopRunningAgents() {
-		this.runningAgents.clear();
+		Data.runningAgents.clear();
 	}
 
 }

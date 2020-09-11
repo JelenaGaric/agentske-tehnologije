@@ -32,28 +32,35 @@ public class WS {
 	
 	@OnOpen
 	public void onOpen(@PathParam("clientId") String clientId, Session session) {
-//		if(!sessions.contains(session)) {
-//			sessions.add(session);
-//			}
+		System.out.println("ON OPEN WS");
+		
+		if(!sessions.values().contains(session)) {
+			sessions.put(clientId, session);
+		}
 		sessions.put(clientId, session);
 		System.out.println("opened "+ clientId);
+		
+		for (Entry<String, Session> entry : sessions.entrySet()) {
+			System.out.println(entry.getKey()+ " - " + entry.getValue());
+		}
 	}
 
 	@OnMessage
 	public void echoTextMessage(String msg)  {
+		System.out.println("echoing...");
+		for (Entry<String, Session> entry : sessions.entrySet()) {
+			try {
+				System.out.println("for sesion:" + entry.getKey() + " text: "+ msg);
 
-				for (Entry<String, Session> entry : sessions.entrySet()) {
-
-							try {
-								((Session) entry.getValue()).getBasicRemote().sendText(msg);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-				}
-					if(!msg.equals("loggedIn")) {
-						String[] parts=msg.split(":");
-						sessions.remove(parts[1]);
-					}
+				((Session) entry.getValue()).getBasicRemote().sendText(msg);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+//			if(!msg.equals("loggedIn")) {
+//				String[] parts=msg.split(":");
+//				sessions.remove(parts[1]);
+//			}
 	 }
 }

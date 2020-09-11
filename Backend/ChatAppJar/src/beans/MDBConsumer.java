@@ -34,15 +34,15 @@ public class MDBConsumer implements MessageListener {
 	@Override
 	public void onMessage(Message message) {
 		try {
+
 			ACLMessage aclMessage = (ACLMessage) ((ObjectMessage) message).getObject();
 			int i = message.getIntProperty("AIDIndex");
 			AID aid = aclMessage.getRecievers().get(i);
-			
 			Agent agent = lh.lookupAgent(aid);
 
 			if(agent != null) {
 				agent.handleMessage(aclMessage);
-			}
+			} 
 			
 		} catch(JMSException ex) {
 			System.out.println("MDB consumer cannot process message.");

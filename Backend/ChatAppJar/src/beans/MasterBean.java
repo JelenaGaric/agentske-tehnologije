@@ -61,6 +61,7 @@ import model.Agent;
 import model.AgentCenter;
 import model.AgentType;
 import model.Performative;
+import util.FileUtils;
 
 @Path("/master")
 @LocalBean
@@ -82,6 +83,8 @@ public class MasterBean extends AgentCenter {
 	@Resource(lookup = "java:jboss/exported/jms/topic/publicTopic")
 	private Topic defaultTopic;
 
+	private FileUtils fileUtils;
+
 	@PostConstruct
 	public void postConstruction() {
 		try {
@@ -90,7 +93,7 @@ public class MasterBean extends AgentCenter {
 		} catch (JMSException ex) {
 			throw new IllegalStateException(ex);
 		}
-		System.out.println("Created AgentCenter!");
+		System.out.println("Created Agent center - Master bean!");
 		// InetAddress inetAddress;
 		// AgentCenter node = new AgentCenter();
 
@@ -104,7 +107,7 @@ public class MasterBean extends AgentCenter {
 			System.out.println("IP Address:- " + node.getAddress() + " alias: " + node.getAlias());
 
 			try {
-				File f = getFile(SessionBean.class, "", "connections.properties");
+				File f = fileUtils.getFile(SessionBean.class, "", "connections.properties");
 				FileInputStream fileInput;
 				fileInput = new FileInputStream(f);
 				Properties properties = new Properties();
@@ -136,90 +139,6 @@ public class MasterBean extends AgentCenter {
 		}
 	}
 
-	@POST
-	@Path("/test")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public Response testMsg(ACLMessageDTO aclMessageDTO) {
-		System.out.println("In test msg....");
-		ACLMessage aclMessage = new ACLMessage();
-		aclMessage.setContent(aclMessageDTO.getContent());
-
-		AID sender = this.data.getAIDByIndex(aclMessageDTO.getSenderIndex());
-		
-		List<AID> receivers = new ArrayList<>();
-		for(int receiverIndex: aclMessageDTO.getReceiverIndexes()) {
-			receivers.add(this.data.getAIDByIndex(receiverIndex));
-		}
-		
-		if(sender == null || receivers.size() == 0) {
-			System.out.println("You need to set a sender and receivers.");
-		    return Response.status(Response.Status.BAD_REQUEST).build();
-		}
-		
-		aclMessage.setSender(sender);
-		aclMessage.setRecievers(receivers);
-		
-		this.sendTestMsg(aclMessage);
-		return Response.ok("Ok", MediaType.APPLICATION_JSON).build();
-	}
-	
-	public void sendTestMsg(ACLMessage aclMessage) {
-		try {
-			// metoda koja ce slati preko JMSa poruku MDBConsumeru, koji ce uraditi lookup
-			// za agenta koji je receiver u ACL poruci i poslati mu poruku
-			// ************************TEST KOMUNIKACIJE IZMEDJU
-			// AGENATA**********************//
-			/*AgentType agentType = new AgentType("collector", "lol-module");
-			data.getAgentTypes().add(agentType);
-
-			Collector testSender = new Collector();
-			AID aidSender = new AID("testSender", this.networkData.getMaster(), agentType);
-			testSender.setId(aidSender);
-			this.data.getAgents().add(testSender);
-			this.data.getRunningAgents().add(testSender);
-
-			Collector testReceiver = new Collector();
-			AID aidReceiver = new AID("testReceiver", this.networkData.getMaster(), agentType);
-			testReceiver.setId(aidReceiver);
-			this.data.getAgents().add(testReceiver);
-			this.data.getRunningAgents().add(testReceiver);
-			*/
-			
-
-			// ovo nadalje samo treba da se nalazi u metodi, sve inad je samo priprema
-			// (zakucano) jer trenutno nemamo pravo slanje acl poruka i agente u bazi nego
-			// ih pravim iznad
-
-			for (int i = 0; i < aclMessage.getRecievers().size(); i++) {
-				if (aclMessage.getRecievers().get(i) == null) {
-					throw new IllegalArgumentException("AID cannot be null.");
-				}
-				// postToReceiver(msg, i, delayMillisec);
-				postToReceiver(aclMessage, i);
-			}
-
-		} catch (JMSException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	private void postToReceiver(ACLMessage msg, int index) throws JMSException {
-		System.out.println("ovdje");
-		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		connection.start();
-
-		MessageProducer producer = session.createProducer(this.defaultTopic);
-		try {
-			ObjectMessage jmsMsg = session.createObjectMessage(msg);
-			jmsMsg.setIntProperty("AIDIndex", index);
-			producer.send(jmsMsg);
-		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
-		}
-
-	}
 
 	// ******************************************MASTER ->
 	// SLAVES*************************************************//
@@ -537,217 +456,5 @@ public class MasterBean extends AgentCenter {
 	 * Response.ok(this.networkData.getThisNode(),
 	 * MediaType.APPLICATION_JSON).build(); }
 	 */
-	// ******************************************AGENT-CENTER -
-	// CLIENT*******************************************//
 
-
-
-	@GET
-	@Path("/agents/classes")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getAgentsClasses() {
-		// return list of agent types
-		System.out.println("***Agent types:---" + this.data.getAgentTypes());
-		return Response.ok(this.data.getAgentTypes(), MediaType.APPLICATION_JSON).build();
-	}
-
-	@GET
-	@Path("/agents/running")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getRunningAgents() {
-		System.out.println("***Running agents:---" + this.data.getRunningAgents());
-		ArrayList<Agent> retVal = new ArrayList<>(); // return list of agents which have been run
-
-		for (Agent agent : data.getRunningAgents()) {
-			retVal.add(agent);
-		}
-
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-
-		// return list of agents which have been run
-		// return Response.ok(this.getRunningAgents(),
-		// MediaType.APPLICATION_JSON).build();
-	}
-
-	@GET
-	@Path("/messages")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getPerformatives() {
-		// return list of performatives from enum
-		ArrayList<Performative> retVal = new ArrayList<Performative>();
-
-		Performative[] performative = Performative.values();
-
-		for (Performative p : performative)
-
-			retVal.add(p);
-
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	}
-
-	@PUT
-	@Path("/agents/running/{type}/{name}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response runAgent(@PathParam("type") String type, @PathParam("name") String name) {
-		// return agent which has been run AID id = new	AID();
-		AgentType agentType = this.data.getAgentType(type);
-		
-		if(agentType == null) {
-			System.out.println("Type not found, creating new one...");
-			agentType = new AgentType();
-			agentType.setName(type);
-			//default module
-			agentType.setModule("lol-module");
-			this.data.getAgentTypes().add(agentType);
-		} else {
-			System.out.println("Found type " + agentType.getName());
-		}
-		
-		Agent agent = this.data.getAgentByName(name);
-		
-		if(agent == null) {
-			System.out.println("Agent with given name not found, creating new one...");
-			//zasad ovako
-			if(agentType.getName().equals("collector")) {
-				agent = new Collector();
-			} else if(agentType.getName().equals("predictor")) {
-				agent = new Predictor();
-			} else {
-				System.out.println("Agent cannot be created.");
-			    return Response.status(Response.Status.BAD_REQUEST).build();
-			}
-		
-			AID aid = new AID(this.networkData.getMaster(), agentType);
-			aid.setName(name);
-			agent.setId(aid);
-			
-			this.data.getAgents().add(agent);
-		} else {
-			System.out.println("Found agent with name " + agent.getId().getName());
-		}
-		
-		if(!this.data.getRunningAgents().contains(agent))
-			this.data.getRunningAgents().add(agent);
-		else
-			System.out.println("The agent has already been run.");
-		
-		return Response.ok(agent, MediaType.APPLICATION_JSON).build();
-	}
-
-
-	/*
-	 * @DELETE
-	 * 
-	 * @Path("/agents/running/{alias}")
-	 * 
-	 * @Produces(MediaType.APPLICATION_JSON) public Response
-	 * stopAgent(@PathParam("aid") String aid) { Agent retVal = new Agent(); //
-	 * return agent which has been stopped
-	 * 
-	 * String agentId = retVal.getId().toString(); if (agentId == aid) {
-	 * 
-	 * this.data.getRunningAgents().remove(retVal);
-	 * 
-	 * }
-	 * 
-	 * return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	 * 
-	 * }
-	 * 
-	 * @POST
-	 * 
-	 * @Consumes(MediaType.APPLICATION_JSON)
-	 * 
-	 * @Produces(MediaType.APPLICATION_JSON)
-	 * 
-	 * @Path("/messages") public Response sendACLMessage(ACLMessage aclMessage) {
-	 * 
-	 * ACLMessage aclMess = new ACLMessage();
-	 * 
-	 * aclMess.setSender(aclMessage.getSender());
-	 * 
-	 * aclMess.setRecievers(aclMessage.getRecievers());
-	 * 
-	 * aclMess.setPerformative(aclMessage.getPerformative());
-	 * 
-	 * aclMess.setContent(aclMessage.getContent());
-	 * 
-	 * aclMess.setContentObj(aclMessage.getContentObj());
-	 * 
-	 * aclMess.setConversationId(aclMessage.getConversationId());
-	 * 
-	 * aclMess.setEncoding(aclMessage.getEncoding());
-	 * 
-	 * aclMess.setInReplyTo(aclMessage.getInReplyTo());
-	 * 
-	 * aclMess.setLanguage(aclMessage.getLanguage());
-	 * 
-	 * aclMess.setOntology(aclMessage.getOntology());
-	 * 
-	 * aclMess.setProtocol(aclMessage.getProtocol());
-	 * 
-	 * aclMess.setReplyBy(aclMessage.getReplyBy());
-	 * 
-	 * aclMess.setReplyTo(aclMessage.getReplyTo());
-	 * 
-	 * aclMess.setReplyWith(aclMessage.getReplyWith());
-	 * 
-	 * aclMess.setUserArgs(aclMessage.getUserArgs());
-	 * 
-	 * this.data.getAclMessages().add(aclMess);
-	 * 
-	 * return Response.ok("Ok.", MediaType.APPLICATION_JSON).build(); }
-	 * 
-	 * 
-	 * @POST
-	 * 
-	 * @Consumes(MediaType.APPLICATION_JSON)
-	 * 
-	 * @Produces(MediaType.APPLICATION_JSON)
-	 * 
-	 * @Path("/predict") public Response predictResult(predictDTO predictDTO) {
-	 * 
-	 * try { Session session = connection.createSession(false,
-	 * Session.AUTO_ACKNOWLEDGE); connection.start(); MessageProducer producer =
-	 * session.createProducer(this.defaultTopic); Message message =
-	 * session.createTextMessage(); ObjectMapper mapper = new ObjectMapper(); String
-	 * predictDTOJSON = ""; try { predictDTOJSON =
-	 * mapper.writeValueAsString(predictDTO); } catch (Exception e) {
-	 * e.printStackTrace(); }
-	 * 
-	 * ((TextMessage) message).setText(predictDTOJSON); producer.send(message);
-	 * producer.close(); connection.close(); } catch (JMSException e) {
-	 * e.printStackTrace(); }
-	 * 
-	 * PredictResultDTO retVal = new PredictResultDTO(); return Response.ok(retVal,
-	 * MediaType.APPLICATION_JSON).build(); }
-	 */
-	// ***********************************************PREBACITI KASNIJE U
-	// UTILS*******************************************//
-	public static File getFile(Class<?> c, String prefix, String fileName) {
-		File f = null;
-		URL url = c.getResource(prefix + fileName);
-		if (url != null) {
-			if (url.toString().startsWith("vfs:/")) {
-				try {
-					URLConnection conn = new URL(url.toString()).openConnection();
-					VirtualFile vf = (VirtualFile) conn.getContent();
-					f = vf.getPhysicalFile();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-					f = new File(".");
-				}
-			} else {
-				try {
-					f = new File(url.toURI());
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
-					f = new File(".");
-				}
-			}
-		} else {
-			f = new File(fileName);
-		}
-		return f;
-	}
 }
