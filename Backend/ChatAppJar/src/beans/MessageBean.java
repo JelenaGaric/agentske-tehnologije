@@ -1,5 +1,6 @@
 package beans;
 
+import java.awt.DisplayMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.Topic;
+import javax.websocket.RemoteEndpoint.Async;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -60,6 +62,8 @@ import util.JNDILookup;
 @Singleton
 @Startup
 public class MessageBean {
+	
+	public static double certainty = -1.0;
 	
 	@EJB
 	Data data; // data for agents and agent types
@@ -152,7 +156,7 @@ public class MessageBean {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response predictResult(predictDTO predictDTO) {
+	public Response predictResult(predictDTO predictDTO) throws InterruptedException {
 
 		ObjectMapper mapper = new ObjectMapper();
 		String predictDTOJSON = "";
@@ -181,11 +185,65 @@ public class MessageBean {
 		receivers.add(collector.getId());
 		aclMessage.setRecievers(receivers);
 		
-		this.sendMsg(aclMessage);
-		
 		PredictResultDTO retVal = new PredictResultDTO();
-		return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-	}
+		
+		sendMsg(aclMessage);
+		Thread.sleep(4000);
+		
+		while(certainty == -1.0 ) {
+			
+			System.out.println("Ispis u while...");
+			
+		}
+		
+		retVal.setCertainty(certainty);
+		System.out.println("CERTAINTY: " + retVal.getCertainty());
+
+   		        /*String name = Thread.currentThread().getName();
+		        System.out.println(name+" started");
+		        while(certainty == -1.0)*/
+		       /* try {
+		            Thread.sleep(4000);
+		            synchronized (aclMessage) {
+		               //  msg.setMsg(name+" Notifier work done");
+		            	sendMsg(aclMessage);
+		            	System.out.println("Certaintyy:" + certainty);
+		                aclMessage.notify();
+		                // msg.notifyAll();
+		            }
+		        } catch (InterruptedException e) {
+		            e.printStackTrace();
+		        }*/
+		        
+		       
+				
+				// this.sendMsg(aclMessage);
+
+				
+				return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
+		        
+		    }
+
+		/*new Thread(new Runnable() {
+			public void run() {
+
+			    //do long running blocking bg stuff here
+				
+			    Display.getDefault().asyncExec(new Runnable() {
+			        public void run() {
+			        	sendMsg(aclMessage);
+			    		System.out.println("ACL: " + aclMessage.getContent());
+			        }   
+			    }
+			}).start();*/
+
+		
+		
+		// Thread.sleep(4000);
+
+	
+       
+	
 	
 	@POST
 	@Path("/acl")

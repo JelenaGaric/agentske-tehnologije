@@ -4,6 +4,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
 
+import beans.MessageBean;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
@@ -35,6 +36,7 @@ public class Predictor implements PredictorRemote{
 	public void handleMessage(ACLMessage message) {
 		System.out.println("Agent " + id.getName() + " received message " + message.getContent() );
 		//POZIV PAJTON SKRIPTE OVDJE
+		MessageBean.certainty = 70.0;
 	}
 
 }
