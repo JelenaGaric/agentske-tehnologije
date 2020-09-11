@@ -65,6 +65,7 @@ public class MessageBean {
 	
 	public static double certainty = -1.0;
 	
+	
 	@EJB
 	Data data; // data for agents and agent types
 	
@@ -184,62 +185,12 @@ public class MessageBean {
 		ArrayList<AID> receivers = new ArrayList<>();
 		receivers.add(collector.getId());
 		aclMessage.setRecievers(receivers);
-		
-		PredictResultDTO retVal = new PredictResultDTO();
-		
-		sendMsg(aclMessage);
-		Thread.sleep(4000);
-		
-		while(certainty == -1.0 ) {
-			
-			System.out.println("Ispis u while...");
-			
-		}
-		
-		retVal.setCertainty(certainty);
-		System.out.println("CERTAINTY: " + retVal.getCertainty());
-
-   		        /*String name = Thread.currentThread().getName();
-		        System.out.println(name+" started");
-		        while(certainty == -1.0)*/
-		       /* try {
-		            Thread.sleep(4000);
-		            synchronized (aclMessage) {
-		               //  msg.setMsg(name+" Notifier work done");
-		            	sendMsg(aclMessage);
-		            	System.out.println("Certaintyy:" + certainty);
-		                aclMessage.notify();
-		                // msg.notifyAll();
-		            }
-		        } catch (InterruptedException e) {
-		            e.printStackTrace();
-		        }*/
+				
+    	sendMsg(aclMessage);
+			   
+		return Response.ok().build();
 		        
-		       
-				
-				// this.sendMsg(aclMessage);
-
-				
-				return Response.ok(retVal, MediaType.APPLICATION_JSON).build();
-		        
-		    }
-
-		/*new Thread(new Runnable() {
-			public void run() {
-
-			    //do long running blocking bg stuff here
-				
-			    Display.getDefault().asyncExec(new Runnable() {
-			        public void run() {
-			        	sendMsg(aclMessage);
-			    		System.out.println("ACL: " + aclMessage.getContent());
-			        }   
-			    }
-			}).start();*/
-
-		
-		
-		// Thread.sleep(4000);
+	}
 
 	
        

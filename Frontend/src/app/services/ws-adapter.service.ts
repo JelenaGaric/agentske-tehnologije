@@ -2,11 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from "rxjs";
 import { map } from "rxjs/operators";
 import { SocketService } from './socket.service';
+import { IPService } from './IP.service';
 
-const CHAT_URL = "ws://echo.websocket.org/";
 
 export interface Message {
-  author: string;
   message: string;
 }
 
@@ -14,11 +13,15 @@ export interface Message {
   providedIn: 'root'
 })
 export class WsAdapterService {
-
+  public ipAdress: string;
   public messages: Subject<Message>;
 
+  public urlString:string = "ws://localhost:8080/ChatAppWar/ws/";
+
   constructor(wsService: SocketService) {
-    this.messages = <Subject<Message>>wsService.connect(CHAT_URL).pipe(map(
+     console.log("MY URL " + this.urlString)
+    
+    /*this.messages = <Subject<Message>>wsService.connect(this.urlString + this.ipAdress).pipe(map(
       (response: MessageEvent): Message => {
         let data = JSON.parse(response.data);
         return {
@@ -26,6 +29,6 @@ export class WsAdapterService {
           message: data.message
         };
       }
-    ));
+    ));*/
   }
 }

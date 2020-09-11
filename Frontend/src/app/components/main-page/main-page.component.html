@@ -50,6 +50,8 @@
                                 <input type="text" formControlName="blueBotLaneStructures" value=""
                                     placeholder="Blue Bot Lane Turrets">
                             </div>
+
+
                             <!-- Break -->
                             <div class="col-12">
                                 <ul class="actions">
@@ -57,6 +59,15 @@
                                     <li><input type="reset" value="Clear" (click)='clear()'></li>
                                 </ul>
                             </div>
+
+                            
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" disabled placeholder = "Your result..." value="{{result.result}}">
+                            </div>
+                            <div class="col-6 col-12-xsmall">
+                                <input type="text" disabled placeholder = "Certainty"  value="{{result.certainty}}">
+                            </div>
+
                         </div>
                     </form>
                 </div>
