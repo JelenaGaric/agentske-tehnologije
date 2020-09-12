@@ -46,7 +46,7 @@ export class MainPageComponent implements OnInit {
       ws.ipAdress =  this.ipAdress;
       console.log("WS IP: " + ws.ipAdress)
 
-      this.messages = <Subject<Message>>wsService.connect("ws://localhost:8080/ChatAppWar/ws/" + this.ipAdress).pipe(map(
+      this.messages = <Subject<Message>>wsService.connect("ws://"+this.ipAdress+":8080/ChatAppWar/ws/" + this.ipAdress).pipe(map(
         (response: MessageEvent): Message => {
           console.log("DATA")
           console.log(response.data)

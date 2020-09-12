@@ -2,6 +2,7 @@ package agent;
 
 import java.util.ArrayList;
 
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Remote;
 import javax.ejb.Stateful;
@@ -12,6 +13,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
+import data.NetworkData;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
@@ -23,6 +25,10 @@ import model.Performative;
 @Remote(CollectorRemote.class)
 public class Collector implements CollectorRemote{
 	private AID id;
+	
+
+	@EJB
+	NetworkData networkData; 
 
 	@Override
 	public AID getId() {
@@ -54,7 +60,7 @@ public class Collector implements CollectorRemote{
 		messageToPredictor.setRecievers(receivers);
 		
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages/acl");
+		ResteasyWebTarget target = client.target("http://"+networkData.getThisNode().getAddress().toString()+":8080/ChatAppWar/rest/messages/acl");
 		Response response = target.request().post(Entity.entity(messageToPredictor, "application/json"));
 		
 		client.close();

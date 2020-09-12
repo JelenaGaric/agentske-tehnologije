@@ -1,5 +1,8 @@
 package agent;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Remote;
@@ -16,6 +19,7 @@ import org.python.core.PyObject;
 import org.python.core.PyString;
 import org.python.util.PythonInterpreter;
 
+import data.NetworkData;
 import model.ACLMessage;
 import model.AID;
 import ws.WS;
@@ -29,6 +33,10 @@ public class Predictor implements PredictorRemote{
 	
 	@EJB WS ws;
 
+
+	@EJB
+	NetworkData networkData; 
+	
 	@Override
 	public AID getId() {
 		return id;
@@ -52,9 +60,21 @@ public class Predictor implements PredictorRemote{
 		//predict
 		
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target("http://localhost:5000/api/predict/"+message.getContent());
-		Response response = target.request().get();
-		System.out.print(response);
+		String path = "http://"+networkData.getThisNode().getAddress().toString()+":5000/api/predict/";
+		String encodedData;
+		try {
+			encodedData = URLEncoder.encode(message.getContent().toString(), "UTF-8");
+			System.out.println(encodedData);
+			ResteasyWebTarget target = client.target(path+encodedData);
+			Response response = target.request().get();
+			String result = response.readEntity(String.class);
+			System.out.println();
+			System.out.println(result);
+			ws.echoTextMessage(result);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 //		 PythonInterpreter.initialize(System.getProperties(),
 //                 System.getProperties(), new String[0]);
@@ -70,8 +90,7 @@ public class Predictor implements PredictorRemote{
 //		System.out.print(results);
 //		interpreter.close();
 		
-		//npr:
-		ws.echoTextMessage("{\"certainty\": \"88.00\", \"result\": \"1\"}");
+		
 	}
 
 }

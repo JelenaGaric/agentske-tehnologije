@@ -153,14 +153,18 @@ def predict(data):
     accuracy = accuracy_score(y_test, predicted)
     fields = list(json.loads(data).values())
     newFields = []
-    goldDiff = int(fields[0]) - int(fields[1])
+    goldDiff = int(fields[1]) - int(fields[0])
+    redDragon = fields[4]
+    blueDragon = fields[5]
     for i, f in enumerate(fields):
-        if (i != 0 and i != 1):
+        if (i != 0 and i != 1 and i!=4 and i!=5):
             newFields.append(int(f))
     newFields.insert(1,goldDiff)
+    newFields.append(blueDragon)
+    newFields.append(redDragon)
 
     result = clf.predict(np.array(newFields).reshape(1, -1))
-    # print(accuracy)
+    print("{\"certainty\": \"" + str(accuracy) + "\", \"result\": \"" + str(result[0]) + "\"}")
 
     return "{\"certainty\": \"" + str(accuracy) + "\", \"result\": \"" + str(result[0]) + "\"}"
 
