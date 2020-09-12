@@ -10,7 +10,8 @@ public class ACLMessageDTO {
 	private int[] receiverIndexes;
 	private String content;
 	private Performative performative;
-
+	private String session;
+	
 	public int getSenderIndex() {
 		return senderIndex;
 	}
@@ -38,6 +39,12 @@ public class ACLMessageDTO {
 	}
 	public void setPerformative(Performative performative) {
 		this.performative = performative;
+	}
+	public String getSession() {
+		return session;
+	}
+	public void setSession(String session) {
+		this.session = session;
 	}
 	
 }
