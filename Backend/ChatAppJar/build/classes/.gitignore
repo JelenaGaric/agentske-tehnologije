@@ -1,3 +1,8 @@
-/beans/
+/DTO/
+/META-INF/
 /agent/
+/beans/
 /config/
+/data/
+/model/
+/util/

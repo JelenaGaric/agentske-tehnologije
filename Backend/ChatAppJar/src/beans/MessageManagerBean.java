@@ -1,20 +1,11 @@
 package beans;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.UUID;
-
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
-import javax.ejb.Timeout;
-import javax.ejb.TimerConfig;
-import javax.ejb.TimerService;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -22,20 +13,10 @@ import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
 import javax.jms.Topic;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
-import org.slf4j.LoggerFactory;
-
-import com.sun.org.slf4j.internal.Logger;
-
-import DTO.ACLMessageDTO;
 import data.Data;
 import model.ACLMessage;
-import model.AID;
 import model.MessageManager;
-import model.Performative;
-import util.JMSFactory;
 
 @Stateless
 @Remote(MessageManager.class)

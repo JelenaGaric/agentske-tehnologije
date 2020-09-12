@@ -22,6 +22,7 @@ export class PredictService {
   constructor(private http: HttpClient) { }
 
   predict(info: predictDTO) {
+    console.log(JSON.stringify(info))
     return this.http.post<predictDTO>('http://localhost:8080/ChatAppWar/rest/messages', info)
     // alert("CAO");
   }

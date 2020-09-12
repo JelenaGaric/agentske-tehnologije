@@ -7,7 +7,7 @@
 			<attribute name="owner.project.facets" value="jst.ejb"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre-8.0.242.08-hotspot">
 		<attributes>
 			<attribute name="module" value="true"/>
 			<attribute name="owner.project.facets" value="java"/>
@@ -20,5 +20,6 @@
 	<classpathentry kind="lib" path="lib/jboss-ejb-api_3.2_spec-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/jboss-cli-client.jar" sourcepath="C:/Users/Jelena/.m2/repository/org/wildfly/core/wildfly-cli/3.0.8.Final/wildfly-cli-3.0.8.Final-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jboss-client.jar"/>
+	<classpathentry kind="lib" path="lib/jython-standalone-2.7.1.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

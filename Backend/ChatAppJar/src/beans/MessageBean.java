@@ -170,6 +170,8 @@ public class MessageBean {
 			return Response.status(Response.Status.BAD_REQUEST).entity("Empty fields.").build();
 		}
 		
+		System.out.println("Prediction request recieved");
+		
 		//ZASAD METODA AUTOMATSKI KREIRA TIPOVE I AGENTE (ILI POKRECE), INACE KORISNIK TO PRVO TREBA DA URADI
 		AgentType collectorAgentType = this.data.createAgentType("collector");
 		Agent collector = this.data.createAgent(collectorAgentType, "collector");

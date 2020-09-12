@@ -1,0 +1,41 @@
+swagger: "2.0"
+info:
+  description: This is the swagger file that goes with our server code
+  version: "1.0.0"
+  title: Swagger REST Article
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+basePath: "/api"
+
+# Paths supported by the server application
+paths:
+  /predict/{data}:
+    get:
+      operationId: "script.predict"
+      tags:
+        - "predict"
+      summary: "Predict match outcome"
+      description: "Returns predicted match outcome and certainty"
+      parameters:
+        - name: data
+          in: path
+          description: prediction data
+          required: true
+          type: string
+          format: string
+      responses:
+        200:
+          description: "Successful"
+          schema:
+            type: "string"
+            items:
+              properties:
+                fname:
+                  type: "string"
+                lname:
+                  type: "string"
+                timestamp:
+                  type: "string"
