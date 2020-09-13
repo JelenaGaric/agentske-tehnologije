@@ -15,13 +15,15 @@ import {MatListModule} from '@angular/material/list';
 import { AgentListsComponent } from './components/agent-lists/agent-lists.component';
 import { CommonModule }                             from '@angular/common';
 import { WsAdapterService } from './services/ws-adapter.service';
+import { PingPongComponent } from './components/ping-pong/ping-pong.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
     AgentListsComponent,
-    MainPageComponent
+    MainPageComponent,
+    PingPongComponent
   ],
   imports: [
     CommonModule,

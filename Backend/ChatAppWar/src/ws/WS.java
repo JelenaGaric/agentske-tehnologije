@@ -47,7 +47,7 @@ public class WS {
 
 	@OnMessage
 	public void echoTextMessage(String msg)  {
-		System.out.println("echoing...");
+		System.out.println("echoing... " + msg);
 		for (Entry<String, Session> entry : sessions.entrySet()) {
 			try {
 				System.out.println("for sesion:" + entry.getKey() + " text: "+ msg);

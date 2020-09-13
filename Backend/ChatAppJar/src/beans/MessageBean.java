@@ -99,10 +99,11 @@ public class MessageBean {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response testPingPong(ACLMessageDTO aclMessageDTO) {
 		System.out.println("In ping pong test...");
-
+		
 		ACLMessage aclMessage = new ACLMessage();
 		aclMessage.setContent(aclMessageDTO.getContent());
 		aclMessage.setPerformative(aclMessageDTO.getPerformative());
+		aclMessage.setConversationId(aclMessageDTO.getSession());
 		
 		//creates new agent type if it doesn't already exist
 		AgentType pingAgentType = this.data.createAgentType("ping");
@@ -122,11 +123,6 @@ public class MessageBean {
 		
 			
 		this.sendMsg(aclMessage);
-		
-		
-		/*OVO NECE
-		MessageManager msm = JNDILookup.lookUp(JNDILookup.MessageManagerLookup, MessageManager.class);
-		msm.sendMessage(aclMessage);*/
 		
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 	}
