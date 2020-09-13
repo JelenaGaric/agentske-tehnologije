@@ -31,7 +31,7 @@ export class PingPongComponent implements OnInit {
     ipService.getIPAddress().subscribe((res:any)=>{  
       this.ipAdress = res.ip;
 
-      this.messages = <Subject<Message>>wsService.connect("ws://localhost:8080/ChatAppWar/ws/" + this.ipAdress).pipe(map(
+      this.messages = <Subject<Message>>wsService.connect("ws://172.16.117.120:8080/ChatAppWar/ws/" + this.ipAdress).pipe(map(
         (response: MessageEvent): Message => {
           return {
             message: response.data

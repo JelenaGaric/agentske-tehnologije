@@ -54,7 +54,7 @@ public class Pong implements PongRemote {
 	protected void onInit() {
 
 		this.nodeName = this.data.getThisNode().getAddress();
-		System.out.println("Pong created ");
+		System.out.println("Pong created on " + this.nodeName);
 		counter = 0;
 
 	}
@@ -80,7 +80,7 @@ public class Pong implements PongRemote {
 			reply.getUserArgs().put("pongCounter", counter);
 			
 			ResteasyClient client = new ResteasyClientBuilder().build();
-			ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages/acl");
+			ResteasyWebTarget target = client.target("http://"+data.getThisNode().getAddress()+":8080/ChatAppWar/rest/messages/acl");
 			Response response = target.request().post(Entity.entity(reply, "application/json"));
 			
 			client.close();

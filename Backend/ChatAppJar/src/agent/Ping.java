@@ -30,7 +30,7 @@ import ws.WS;
 public class Ping implements PingRemote{
 
 	private AID id;
-	private String nodeName;
+	private String nodeName = "";
 	
 	@EJB
 	NetworkData data;
@@ -39,11 +39,13 @@ public class Ping implements PingRemote{
 
 	private MessageManager messageManager;
 
-	public Ping() {
+	public Ping() {}
+	
+	protected void onInit() {
 		this.nodeName = this.data.getThisNode().getAddress();
 		System.out.println("Ping created on " + nodeName);
 	}
-
+	
 	@Override
 	public AID getId() {
 		return id;
@@ -52,9 +54,6 @@ public class Ping implements PingRemote{
 	@Override
 	public void setId(AID id) {
 		this.id = id;		
-	}
-	
-	protected void onInit() {
 	}
 	
 	
@@ -86,7 +85,7 @@ public class Ping implements PingRemote{
 			System.out.println("Ping got a message from " + msg.getConversationId());
 			
 			ResteasyClient client = new ResteasyClientBuilder().build();
-			ResteasyWebTarget target = client.target("http://localhost:8080/ChatAppWar/rest/messages/acl");
+			ResteasyWebTarget target = client.target("http://"+this.data.getThisNode().getAddress()+":8080/ChatAppWar/rest/messages/acl");
 			Response response = target.request().post(Entity.entity(msgToPong, "application/json"));
 			
 			client.close();

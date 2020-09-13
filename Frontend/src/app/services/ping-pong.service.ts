@@ -16,7 +16,7 @@ export class PingPongService {
   constructor(private http: HttpClient) { }
 
   pingpong(acl: ACLMessageDTO) {
-    return this.http.post('http://localhost:8080/ChatAppWar/rest/messages/pingpong', acl)
+    return this.http.post('http://172.16.117.120:8080/ChatAppWar/rest/messages/pingpong', acl)
   }
 
 }
