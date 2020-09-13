@@ -143,6 +143,7 @@ def predict(data):
 
     df.reset_index(drop=True, inplace=True)
     X = df.drop(['rResult', 'bResult', 'Address'], axis=1)
+    print(X.columns)
     y = df['rResult']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
@@ -152,17 +153,24 @@ def predict(data):
     predicted = clf.predict(X_test)
     accuracy = accuracy_score(y_test, predicted)
     fields = list(json.loads(data).values())
+    print(fields)
     newFields = []
     goldDiff = int(fields[1]) - int(fields[0])
     redDragon = fields[4]
     blueDragon = fields[5]
+    rBot = fields[8]
+    rMid = fields[6]
+    rTop = fields[7]
     for i, f in enumerate(fields):
-        if (i != 0 and i != 1 and i!=4 and i!=5):
+        if (i != 0 and i != 1 and i!=4 and i!=5 and i!=6 and i!=7 and i!=8):
             newFields.append(int(f))
-    newFields.insert(1,goldDiff)
+    newFields.insert(0,goldDiff)
     newFields.append(blueDragon)
     newFields.append(redDragon)
-
+    newFields.insert(3, rBot)
+    newFields.insert(4, rMid)
+    newFields.insert(5, rTop)
+    print(newFields)
     result = clf.predict(np.array(newFields).reshape(1, -1))
     print("{\"certainty\": \"" + str(accuracy) + "\", \"result\": \"" + str(result[0]) + "\"}")
 

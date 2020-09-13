@@ -20,6 +20,7 @@ export class MainPageComponent implements OnInit {
   public messages: Subject<Message>;
   public ipAdress: string;
   result: ResultDTO = new ResultDTO();
+  predictString : string = "";
 
   // predictForm: FormGroup;
   predictForm = new FormGroup ({
@@ -41,12 +42,10 @@ export class MainPageComponent implements OnInit {
   {
     ipService.getIPAddress().subscribe((res:any)=>{  
       this.ipAdress = res.ip;
-      console.log(this.ipAdress)
 
       ws.ipAdress =  this.ipAdress;
-      console.log("WS IP: " + ws.ipAdress)
 
-      this.messages = <Subject<Message>>wsService.connect("ws://"+this.ipAdress+":8080/ChatAppWar/ws/" + this.ipAdress).pipe(map(
+      this.messages = <Subject<Message>>wsService.connect("ws://172.16.117.120:8080/ChatAppWar/ws/" + this.ipAdress).pipe(map(
         (response: MessageEvent): Message => {
           console.log("DATA")
           console.log(response.data)
@@ -60,9 +59,14 @@ export class MainPageComponent implements OnInit {
 
         this.messages.subscribe(msg => {
           console.log("Response from websocket: " );
-          this.result = JSON.parse(msg.message);
-          console.log(this.result);
-
+          this.result = JSON.parse(JSON.parse(msg.message));
+          console.log(this.result.certainty);
+          this.predictString = "";
+          if(this.result.result == 1){
+            this.predictString = "Red team wins."
+          } else if(this.result.result == 0){
+            this.predictString = "Blue team wins."
+          }
         });
 
       /*ws.messages.subscribe(msg => {
@@ -86,7 +90,6 @@ export class MainPageComponent implements OnInit {
     this.predict = this.predictForm.value;  
 
     this.service.predict(this.predict).subscribe(data => {
-     
     })
   }
 

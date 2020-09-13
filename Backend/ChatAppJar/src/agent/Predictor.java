@@ -68,8 +68,10 @@ public class Predictor implements PredictorRemote{
 			ResteasyWebTarget target = client.target(path+encodedData);
 			Response response = target.request().get();
 			String result = response.readEntity(String.class);
+			
 			System.out.println();
 			System.out.println(result);
+			
 			ws.echoTextMessage(result);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block

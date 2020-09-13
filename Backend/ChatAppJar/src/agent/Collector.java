@@ -60,7 +60,8 @@ public class Collector implements CollectorRemote{
 		messageToPredictor.setRecievers(receivers);
 		
 		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target("http://"+networkData.getThisNode().getAddress().toString()+":8080/ChatAppWar/rest/messages/acl");
+		ResteasyWebTarget target = client.target
+				("http://"+networkData.getThisNode().getAddress().toString()+":8080/ChatAppWar/rest/messages/acl");
 		Response response = target.request().post(Entity.entity(messageToPredictor, "application/json"));
 		
 		client.close();
