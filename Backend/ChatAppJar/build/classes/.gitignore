@@ -1,2 +1,9 @@
-/beans/
+/DTO/
+/META-INF/
 /agent/
+/beans/
+/config/
+/data/
+/jms/
+/model/
+/util/

@@ -152,6 +152,8 @@ def predict(data):
     clf.fit(X_train, y_train)
     predicted = clf.predict(X_test)
     accuracy = accuracy_score(y_test, predicted)
+    request = data.split("---")
+    print(request)
     fields = list(json.loads(data).values())
     print(fields)
     newFields = []

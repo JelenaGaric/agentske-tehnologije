@@ -31,7 +31,7 @@ export class PredictService {
     //   return this.http.post<predictDTO>('http://'+this.ipAdress+':8080/ChatAppWar/rest/messages', info)
     // });
    
-    return this.http.post<predictDTO>('http://172.16.117.120:8080/ChatAppWar/rest/messages', info)
+    return this.http.post<predictDTO>('http://192.168.0.103:8080/ChatAppWar/rest/messages', info)
   }
 
 

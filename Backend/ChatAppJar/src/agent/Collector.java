@@ -1,6 +1,9 @@
 package agent;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
@@ -25,7 +28,7 @@ import model.Performative;
 @Remote(CollectorRemote.class)
 public class Collector implements CollectorRemote{
 	private AID id;
-	
+	private String message;
 
 	@EJB
 	NetworkData networkData; 
@@ -52,18 +55,38 @@ public class Collector implements CollectorRemote{
 		
 		AID predictorAID = message.getReplyTo();
 		ACLMessage messageToPredictor = new ACLMessage();
-		messageToPredictor.setContent(message.getContent());
+		//messageToPredictor.setContent(message.getContent());
 		messageToPredictor.setPerformative(Performative.request);
 		messageToPredictor.setSender(this.getId());
 		ArrayList<AID> receivers = new ArrayList<>();
 		receivers.add(predictorAID);
 		messageToPredictor.setRecievers(receivers);
 		
-		ResteasyClient client = new ResteasyClientBuilder().build();
-		ResteasyWebTarget target = client.target
-				("http://"+networkData.getThisNode().getAddress().toString()+":8080/ChatAppWar/rest/messages/acl");
-		Response response = target.request().post(Entity.entity(messageToPredictor, "application/json"));
-		
-		client.close();
+		File file = new File("C:\\Users\\Ana\\faks\\agentske\\agentske-tehnologije\\Backend\\ChatAppJar\\src\\agent\\joined.csv");
+		 try {
+		      Scanner myReader = new Scanner(file);
+		     this.message = message.getContent();
+		     this.message += "---";
+		      while (myReader.hasNextLine()) {
+		        String data = myReader.nextLine();
+		        System.out.println(data);
+
+		    	this.message += data;
+				
+		      }
+		      System.out.print(this.message);
+		      myReader.close();
+		    } catch (FileNotFoundException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
+		 
+		 	messageToPredictor.setContent(this.message);
+			ResteasyClient client = new ResteasyClientBuilder().build();
+			ResteasyWebTarget target = client.target
+					("http://"+networkData.getThisNode().getAddress().toString()+":8080/ChatAppWar/rest/messages/acl");
+			Response response = target.request().post(Entity.entity(messageToPredictor, "application/json"));
+			
+			client.close();
 	}
 }

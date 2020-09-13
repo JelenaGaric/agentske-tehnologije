@@ -256,8 +256,6 @@ public class MessageBean {
 				if (aclMessage.getRecievers().get(i) == null) {
 					throw new IllegalArgumentException("AID cannot be null.");
 				}
-				System.out.println("indexxxxxx: " +i);
-				System.out.println("contenttttt " + aclMessage.getContent());
 				postToReceiver(aclMessage, i);
 			}
 

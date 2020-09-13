@@ -1,5 +1,8 @@
 package agent;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -58,12 +61,33 @@ public class Predictor implements PredictorRemote{
 		System.out.println("Agent " + id.getName() + " received message " + message.getContent() );
 		
 		//predict
+		String parts[] = message.getContent().split("---");
+		String dataset = parts[1];
+		System.out.println(dataset);
+		
+		 BufferedWriter writer;
+		try {
+			writer = new BufferedWriter(new FileWriter("collectorData.csv"));
+			 try {
+					writer.write(dataset);
+					writer.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		   
+		    
+		    
 		
 		ResteasyClient client = new ResteasyClientBuilder().build();
 		String path = "http://"+networkData.getThisNode().getAddress().toString()+":5000/api/predict/";
 		String encodedData;
 		try {
-			encodedData = URLEncoder.encode(message.getContent().toString(), "UTF-8");
+			encodedData = URLEncoder.encode(parts[0], "UTF-8");
 			System.out.println(encodedData);
 			ResteasyWebTarget target = client.target(path+encodedData);
 			Response response = target.request().get();

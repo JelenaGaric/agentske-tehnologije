@@ -170,6 +170,7 @@ public class MasterBean extends AgentCenter {
 			try {
 				register(node);
 			} catch (Exception e1) {
+				e1.printStackTrace();
 				System.out.println("Handshake unsuccessful. Node not registered");
 			}
 		}
@@ -190,11 +191,6 @@ public class MasterBean extends AgentCenter {
 
 	public void sendNodesToNewNode(AgentCenter node) {
 		System.out.println("****NODE ADDRESS: " + node.getAddress());
-		AgentCenter ac = new AgentCenter("alias", "192.168.0.102");
-		// AgentType at = new AgentType("node", "modules");
-
-		// AID aid = new AID("imee", ac, at);
-		this.networkData.getNodes().add(ac);
 
 		try {
 			// throw new EmptyStackException();
@@ -210,7 +206,6 @@ public class MasterBean extends AgentCenter {
 			sendNewNodeToNodes(node);
 		} catch (Exception e) {
 			try {
-				// throw new EmptyStackException();
 				ResteasyClient client1 = new ResteasyClientBuilder().build();
 				ResteasyWebTarget target1 = client1
 						.target("http://" + node.getAddress() + ":8080/ChatAppWar/rest/master/nodes");
@@ -222,19 +217,16 @@ public class MasterBean extends AgentCenter {
 				sendNewNodeToNodes(node);
 			} catch (Exception e1) {
 				System.out.println("Handshake unsuccessful: Roll-back...");
+				e1.printStackTrace();
 				delete(node.getAlias());
 			}
 		}
 	}
 
 	public void sendNewNodeToNodes(AgentCenter node) {
-		System.out.println("****** NODES heh: " + node.getAddress());
-		// AgentCenter ac = new AgentCenter("alias", "192.168.0.102");
-		// AgentType at = new AgentType("node", "modules");
-
-		// AID aid = new AID("imee", ac, at);
-		// this.networkData.getNodes().add(ac);
-		System.out.println("sending new node to nodes");
+		System.out.println("****** NODES: " + node.getAddress());
+		
+		System.out.println("Sending new node to nodes (" +networkData.getNodes().size());
 
 		// send info about new node to other nodes
 		for (AgentCenter agentCenter : networkData.getNodes()) {
