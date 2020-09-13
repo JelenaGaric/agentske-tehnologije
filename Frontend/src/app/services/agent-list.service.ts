@@ -21,22 +21,22 @@ export class AgentListService {
 
       public getAgentType(): Observable<AgentType[]> {
         //stavila sam svoju sad za sad da vidim radi li
-        return this.http.get<AgentType[]>('http://localhost:8080/ChatAppWar/rest/agents/classes');
+        return this.http.get<AgentType[]>('http://172.16.117.120:8080/ChatAppWar/rest/agents/classes');
       }
 
       public getAgents(): Observable<Agent[]> {
-        return this.http.get<Agent[]>('http://localhost:8080/ChatAppWar/rest/agents/running');
+        return this.http.get<Agent[]>('http://172.16.117.120:8080/ChatAppWar/rest/agents/running');
       }
 
       public getAllAgents(): Observable<Agent[]> {
-        return this.http.get<Agent[]>('http://localhost:8080/ChatAppWar/rest/agents');
+        return this.http.get<Agent[]>('http://172.16.117.120:8080/ChatAppWar/rest/agents');
       }
 
       public stopAgent(aid: string) {
-        return this.http.delete("http://localhost:8080/ChatAppWar/rest/agents/running/" + aid);
+        return this.http.delete("http://172.16.117.120:8080/ChatAppWar/rest/agents/running/" + aid);
       }
       public startAgent(type: string, aid: string) {
-        return this.http.put("http://localhost:8080/ChatAppWar/rest/agents/running/" + type + "/" + aid, null);
+        return this.http.put("http://172.16.117.120:8080/ChatAppWar/rest/agents/running/" + type + "/" + aid, null);
       }
 
 }
