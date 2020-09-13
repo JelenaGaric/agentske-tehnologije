@@ -48,5 +48,6 @@ public enum Performative {
 	subscribe// The act of requesting a persistent intention to notify the sender of the
 				// value of a reference, and to notify again whenever the object identified by
 				// the reference changes.
+, resume
 
 }

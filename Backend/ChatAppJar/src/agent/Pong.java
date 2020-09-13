@@ -39,11 +39,9 @@ public class Pong implements PongRemote {
 	@Override
 	public void setId(AID id) {
 		this.id = id;	
-		System.out.println("MY COUNTER - " + counter);
 	}
 	
 	protected void onInit() {
-		
 		System.out.println("Pong created ");
 		counter = 0;
 

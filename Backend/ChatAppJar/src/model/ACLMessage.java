@@ -168,4 +168,8 @@ public class ACLMessage implements Serializable {
 		super();
 	}
 
+	public ACLMessage(Performative performative) {
+		this.performative = performative;
+	}
+
 }

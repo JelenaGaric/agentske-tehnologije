@@ -17,6 +17,8 @@ public class JNDILookup {
 	public static final String PredictorLookup = JNDIPATH + Predictor.class.getSimpleName() + "!" + PredictorRemote.class.getName() + "?stateful";
 	public static final String PingLookup = JNDIPATH + Ping.class.getSimpleName() + "!" + PingRemote.class.getName() + "?stateful";
 	public static final String PongLookup = JNDIPATH + Pong.class.getSimpleName() + "!" + PongRemote.class.getName() + "?stateful";
+	public static final String InitiatorLookup = JNDIPATH + Initiator.class.getSimpleName() + "!" + InitiatorRemote.class.getName() + "?stateful";
+	public static final String ParticipantLookup = JNDIPATH + Participant.class.getSimpleName() + "!" + ParticipantRemote.class.getName() + "?stateful";
 	public static final String MessageManagerLookup = JNDIPATH + MessageManagerBean.class.getSimpleName() + "!" + MessageManager.class.getName();
 
 	@SuppressWarnings("unchecked")

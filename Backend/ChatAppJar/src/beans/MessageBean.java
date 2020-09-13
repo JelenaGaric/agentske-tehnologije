@@ -47,6 +47,7 @@ import agent.PongRemote;
 import agent.Predictor;
 import data.Data;
 import data.NetworkData;
+import jms.JMSQueue;
 import model.ACLMessage;
 import model.AID;
 import model.Agent;
@@ -56,6 +57,7 @@ import model.MessageManager;
 import model.Performative;
 import model.User;
 import util.JNDILookup;
+import util.ObjectFactory;
 
 @Path("/messages")
 @LocalBean
@@ -113,7 +115,12 @@ public class MessageBean {
 		List<AID> receivers = new ArrayList<>();
 		receivers.add(pingAgent.getId());
 		aclMessage.setRecievers(receivers);
+		for(AID aid: receivers) {
+			System.out.println("********AID od ping agent: " + aid.getName().toString());
+			}
 		aclMessage.setReplyTo(pongAgent.getId());
+		
+			
 		this.sendMsg(aclMessage);
 		
 		
@@ -123,6 +130,51 @@ public class MessageBean {
 		
 		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
 	}
+	
+	@POST
+	@Path("/contractNet")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response testContractNet(ACLMessageDTO aclMessageDTO) {
+		System.out.println("In contract net test...");
+
+		ACLMessage aclMessage = new ACLMessage();
+		aclMessage.setContent(aclMessageDTO.getContent());
+		aclMessage.setPerformative(aclMessageDTO.getPerformative());
+		System.out.println("MSG CONTENT: " + aclMessage.getContent() + ", MSG PERFORMATIVE: " + aclMessage.getPerformative());
+		
+		//creates new agent type if it doesn't already exist
+		AgentType initiatorAgentType = this.data.createAgentType("initiator");
+		AgentType participantAgentType = this.data.createAgentType("participant");
+		
+		//creates new agent if it doesn't already exist
+		Agent initiatorAgent = this.data.createAgent(initiatorAgentType, "initiator");
+		Agent participantAgent = this.data.createAgent(participantAgentType, "participant");
+	
+		List<AID> receivers = new ArrayList<>();
+		receivers.add(participantAgent.getId());
+		aclMessage.setRecievers(receivers);
+		aclMessage.setSender(initiatorAgent.getId());
+		for(AID initAID: receivers) {
+			System.out.println("AID agent: " + initAID.getName().toString());
+		}
+		
+		// start(initiatorAgent, participantAgent);
+		
+		this.sendMsg(aclMessage);
+
+		
+		return Response.ok(aclMessage, MediaType.APPLICATION_JSON).build();
+	}
+	
+	/*private static void start(Agent initiatorAgent, Agent participantAgent) {
+		ACLMessage msg = new ACLMessage(Performative.request);
+		System.out.println("POKRENULI SE CNET AGENTI");
+		ArrayList<AID> receivers = new ArrayList<>();
+		receivers.add(initiatorAgent.getId());
+		msg.setRecievers(receivers);
+
+	}*/
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -170,9 +222,6 @@ public class MessageBean {
 			return Response.status(Response.Status.BAD_REQUEST).entity("Empty fields.").build();
 		}
 		
-		System.out.println("Prediction request recieved");
-		
-		//ZASAD METODA AUTOMATSKI KREIRA TIPOVE I AGENTE (ILI POKRECE), INACE KORISNIK TO PRVO TREBA DA URADI
 		AgentType collectorAgentType = this.data.createAgentType("collector");
 		Agent collector = this.data.createAgent(collectorAgentType, "collector");
 
@@ -194,10 +243,7 @@ public class MessageBean {
 		        
 	}
 
-	
-       
-	
-	
+
 	@POST
 	@Path("/acl")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -214,6 +260,8 @@ public class MessageBean {
 				if (aclMessage.getRecievers().get(i) == null) {
 					throw new IllegalArgumentException("AID cannot be null.");
 				}
+				System.out.println("indexxxxxx: " +i);
+				System.out.println("contenttttt " + aclMessage.getContent());
 				postToReceiver(aclMessage, i);
 			}
 

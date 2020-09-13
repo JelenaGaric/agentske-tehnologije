@@ -33,14 +33,17 @@ public class LookupHelper {
 						
 					} else if(aid.getType().getName().equals("pong")) {
 						agent = JNDILookup.lookUp(JNDILookup.PongLookup, PongRemote.class);
+					} else if(aid.getType().getName().equals("initiator")) {
+						agent = JNDILookup.lookUp(JNDILookup.InitiatorLookup, InitiatorRemote.class);
+					} else if(aid.getType().getName().equals("participant")) {
+						agent = JNDILookup.lookUp(JNDILookup.ParticipantLookup, ParticipantRemote.class);
 					}
-					
 					if(agent != null) {
 						agent.setId(aid);
 						System.out.println("Looked up for test agent.");
 					} 
 					else {
-						System.out.println("Error. Agent is null");
+						System.out.println("Error. Agent is null.");
 					}
 					
 				} else if(aid.getType().getModule().equals("lol-module")) {
@@ -54,7 +57,7 @@ public class LookupHelper {
 							System.out.println("Looked up for collector agent.");
 						} 
 						else {
-							System.out.println("Error. Agent is null");
+							System.out.println("Error. Agent is null.");
 						}
 						
 					} else if(aid.getType().getName().equals("predictor")) {

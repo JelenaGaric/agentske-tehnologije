@@ -269,7 +269,7 @@ public class MasterBean extends AgentCenter {
 	@Path("/node")
 	public Response registerNode(AgentCenter agentCenter) {
 
-		System.out.println("******AGENT ALLIAS:" + agentCenter.getAddress() + "******");
+		System.out.println("******AGENT ALIAS:" + agentCenter.getAddress() + "******");
 
 		if (networkData.getThisNode().getAddress().equals(masterAddress)) {
 			System.out.println("imal te rodjo");
